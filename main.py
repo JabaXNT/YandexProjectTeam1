@@ -1,4 +1,5 @@
 import pygame
+import sys
 import os
 from pygame_widgets import Button
 
@@ -29,23 +30,23 @@ b_start = Button(screen, 440, 200, 400, 70, text='Играть',
                  textColour=(0, 0, 255),
                  onClick=menu_to_running)
 b_hangar = Button(screen, 440, 350, 400, 70, text='Ангар',
-                 fontSize=40, hoverColour=(78, 163, 39),
-                 inactiveColour=(50, 122, 17),
-                 pressedColour=(231, 247, 49), radius=20,
-                 textColour=(0, 0, 255),
-                 onClick=lambda: print('Click'))
+                  fontSize=40, hoverColour=(78, 163, 39),
+                  inactiveColour=(50, 122, 17),
+                  pressedColour=(231, 247, 49), radius=20,
+                  textColour=(0, 0, 255),
+                  onClick=lambda: print('Click'))
 b_top = Button(screen, 440, 500, 400, 70, text='Таблица рекордов',
-                 fontSize=40, hoverColour=(78, 163, 39),
-                 inactiveColour=(50, 122, 17),
-                 pressedColour=(231, 247, 49), radius=20,
-                 textColour=(0, 0, 255),
-                 onClick=lambda: print('Click'))
+               fontSize=40, hoverColour=(78, 163, 39),
+               inactiveColour=(50, 122, 17),
+               pressedColour=(231, 247, 49), radius=20,
+               textColour=(0, 0, 255),
+               onClick=lambda: print('Click'))
 b_quit = Button(screen, 440, 650, 400, 70, text='Выйти из игры',
-                 fontSize=40, hoverColour=(78, 163, 39),
-                 inactiveColour=(50, 122, 17),
-                 pressedColour=(231, 247, 49), radius=20,
-                 textColour=(0, 0, 255),
-                 onClick=lambda: pygame.quit())
+                fontSize=40, hoverColour=(78, 163, 39),
+                inactiveColour=(50, 122, 17),
+                pressedColour=(231, 247, 49), radius=20,
+                textColour=(0, 0, 255),
+                onClick=lambda: pygame.quit())
 running = False
 menu = True
 while True:
@@ -54,7 +55,8 @@ while True:
             if event.type == pygame.QUIT:
                 running = False
                 quit()
-        bg_running = pygame.transform.scale(load_image('backgrounds\\space.png'), (1280, 960))
+        bg_running = pygame.transform.scale(
+            load_image('backgrounds\\space.png'), (1280, 960))
         screen.blit(bg_running, (0, 0))
         pygame.display.update()
     while menu:
@@ -64,7 +66,8 @@ while True:
                 pygame.quit()
                 menu = False
                 quit()
-        bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
+        bg_menu = pygame.transform.scale(
+            load_image('backgrounds\\menu.jpg'), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         b_start.listen(events)
         b_start.draw()
