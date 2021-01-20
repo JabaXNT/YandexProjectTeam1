@@ -47,14 +47,22 @@ class Player(pygame.sprite.Sprite):
             self.rect.center = self.center
 
     def get_speed(self):
-        if self.rot <= 180:
-            speedy = (self.rot - 90) / 20
+        if self.rot % 90 == 0:
+            coef = 1
         else:
-            speedy = -(self.rot - 270) / 20
+            coef = self.rot % 90
+            if coef < 45:
+                coef = abs((45 - coef) / 45 - 2)
+            else:
+                coef = abs(coef / 45 - 3)
+        if self.rot <= 180:
+            speedy = (self.rot - 90) / 20 * coef * 0.75
+        else:
+            speedy = -(self.rot - 270) / 20 * coef * 0.75
         if 90 < self.rot < 270:
-            speedx = (self.rot - 180) / 20
+            speedx = (self.rot - 180) / 20 * coef * 0.75
         elif self.rot > 90:
-            speedx = -(self.rot - 360) / 20
+            speedx = -(self.rot - 360) / 20 * coef * 0.75
         else:
             speedx = -self.rot / 20
         if -1 < speedy < 1:
