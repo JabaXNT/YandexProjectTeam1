@@ -1,6 +1,8 @@
 import pygame
 import os
-from pygame_widgets import Button
+import sys
+import sqlite3
+from pygame_widgets import Button, Slider
 from src.player import Player
 
 
@@ -43,9 +45,15 @@ def restart():
     all_sprites.add(player)
     running_pause = False
 
+def volume(): #функция для изменения звука(вызывется в главном цикле)
+    pygame.mixer.Sound.set_volume(soundtrack, volume_slider.getValue() / 100)
+
 
 pygame.init()
 pygame.mixer.init()
+soundtrack = pygame.mixer.Sound(os.path.join('images\\imperial_march.wav')) #путь до музыки в меню
+pygame.mixer.Sound.play(soundtrack)
+pygame.mixer.Sound.set_volume(soundtrack, 0.5) #изначальная громкость
 fps = 60
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((1280, 960))
@@ -53,6 +61,13 @@ pause_b = pygame.Surface((750, 600))
 pause = pygame.Surface((750, 600))
 all_sprites = pygame.sprite.Group()
 pygame.mouse.set_visible(False)
+volume_slider = Slider(screen, 10, 920, 200, 20, min=0, max=100, step=10) #слайдер, можно дизайн переделать
+menu_b_profiles = Button(screen, 1080, 0, 200, 40, text='Профили', # кнопка с профилями пока не работает, бд в src лежит
+                      fontSize=40, hoverColour=(78, 163, 39),
+                      inactiveColour=(50, 122, 17),
+                      pressedColour=(231, 247, 49),
+                      textColour=(0, 0, 255),
+                      onClick=lambda: print('Click'))
 menu_b_start = Button(screen, 440, 200, 400, 70, text='Играть',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
@@ -165,6 +180,11 @@ while True:
         x, y = pygame.mouse.get_pos()
         bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
         screen.blit(bg_menu, (0, 0))
+        volume_slider.listen(events) #Отрисовка слайдера, кнопки и вызов функции
+        volume_slider.draw()
+        volume()
+        menu_b_profiles.listen(events)
+        menu_b_profiles.draw()
         menu_b_start.listen(events)
         menu_b_start.draw()
         menu_b_hangar.listen(events)
