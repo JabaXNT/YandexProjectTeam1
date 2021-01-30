@@ -49,6 +49,13 @@ def volume(): #функция для изменения звука(вызыве�
     pygame.mixer.Sound.set_volume(soundtrack, volume_slider.getValue() / 100)
 
 
+def pick_profile():
+    global profile
+    global menu
+    profile = True
+    menu = False
+
+
 pygame.init()
 pygame.mixer.init()
 soundtrack = pygame.mixer.Sound(os.path.join('images\\imperial_march.wav')) #путь до музыки в меню
@@ -67,7 +74,7 @@ menu_b_profiles = Button(screen, 1080, 0, 200, 40, text='Профили', # кн
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49),
                       textColour=(0, 0, 255),
-                      onClick=lambda: print('Click'))
+                      onClick=pick_profile)
 menu_b_start = Button(screen, 440, 200, 400, 70, text='Играть',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
@@ -118,6 +125,7 @@ pause_b_quit = Button(pause_b, 400, 500, 300, 60, text='Выйти из игры
                       onClick=lambda: pygame.quit())
 running = False
 running_pause = False
+profile = False
 menu = True
 cursor = load_image('arrow.png').convert_alpha()
 while True:
@@ -198,4 +206,21 @@ while True:
         pygame.draw.rect(screen, (0, 0, 255), (440, 500, 400, 70), 11)
         pygame.draw.rect(screen, (0, 0, 255), (440, 650, 400, 70), 11)
         screen.blit(cursor, (x, y))
+        pygame.display.update()
+    while profile:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                profiles = False
+                quit()
+        x, y = pygame.mouse.get_pos()
+        bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
+        screen.blit(bg_menu, (0, 0))
+        screen.blit(cursor, (x, y))
+        pause.fill((0, 80, 199))
+        pause.set_alpha(75)
+        screen.blit(pause, (240, 100))
+        pause_b.set_colorkey('BLACK')
+        screen.blit(pause_b, (240, 100))
         pygame.display.update()
