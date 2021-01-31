@@ -27,9 +27,11 @@ def running_to_menu():
     global menu
     global running
     global running_pause
+    global profile
     menu = True
     running = False
     running_pause = False
+    profile = False
 
 
 def unpause():
@@ -54,10 +56,15 @@ def pick_profile():
     global menu
     profile = True
     menu = False
+    result = cur.execute("""SELECT * FROM data""").fetchall()
+    print(result)
+
 
 
 pygame.init()
 pygame.mixer.init()
+con = sqlite3.connect(os.path.join('src\\profiles.db'))
+cur = con.cursor()
 soundtrack = pygame.mixer.Sound(os.path.join('images\\imperial_march.wav')) #путь до музыки в меню
 pygame.mixer.Sound.play(soundtrack)
 pygame.mixer.Sound.set_volume(soundtrack, 0.5) #изначальная громкость
@@ -66,6 +73,8 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode((1280, 960))
 pause_b = pygame.Surface((750, 600))
 pause = pygame.Surface((750, 600))
+profiles = pygame.Surface((750, 800))
+profiles_b = pygame.Surface((750, 800))
 all_sprites = pygame.sprite.Group()
 pygame.mouse.set_visible(False)
 volume_slider = Slider(screen, 10, 920, 200, 20, min=0, max=100, step=10) #слайдер, можно дизайн переделать
@@ -123,6 +132,36 @@ pause_b_quit = Button(pause_b, 400, 500, 300, 60, text='Выйти из игры
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
                       onClick=lambda: pygame.quit())
+profile_1 = Button(profiles_b, 225, 100, 295, 55, text='Профиль 1',
+                    fontSize=40, hoverColour=(78, 163, 39),
+                    inactiveColour=(50, 122, 17),
+                    pressedColour=(231, 247, 49),
+                    textColour=(0, 0, 255),
+                    onClick=lambda: print('Click'))
+profile_2 = Button(profiles_b, 225, 250, 295, 55, text='Профиль 2',
+                    fontSize=40, hoverColour=(78, 163, 39),
+                    inactiveColour=(50, 122, 17),
+                    pressedColour=(231, 247, 49),
+                    textColour=(0, 0, 255),
+                    onClick=lambda: print('Click'))
+profile_3 = Button(profiles_b, 225, 400, 295, 55, text='Профиль 3',
+                    fontSize=40, hoverColour=(78, 163, 39),
+                    inactiveColour=(50, 122, 17),
+                    pressedColour=(231, 247, 49),
+                    textColour=(0, 0, 255),
+                    onClick=lambda: print('Click'))
+profile_4 = Button(profiles_b, 225, 550, 295, 55, text='Профиль 4',
+                    fontSize=40, hoverColour=(78, 163, 39),
+                    inactiveColour=(50, 122, 17),
+                    pressedColour=(231, 247, 49),
+                    textColour=(0, 0, 255),
+                    onClick=lambda: print('Click'))
+menu_prof = Button(profiles_b, 210, 700, 335, 55, text='Вернуться в меню',
+                    fontSize=40, hoverColour=(78, 163, 39),
+                    inactiveColour=(50, 122, 17),
+                    pressedColour=(231, 247, 49),
+                    textColour=(0, 0, 255),
+                    onClick=lambda: running_to_menu())
 running = False
 running_pause = False
 profile = False
@@ -184,6 +223,7 @@ while True:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 menu = False
+                con.close()
                 quit()
         x, y = pygame.mouse.get_pos()
         bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
@@ -205,6 +245,7 @@ while True:
         pygame.draw.rect(screen, (0, 0, 255), (440, 350, 400, 70), 11)
         pygame.draw.rect(screen, (0, 0, 255), (440, 500, 400, 70), 11)
         pygame.draw.rect(screen, (0, 0, 255), (440, 650, 400, 70), 11)
+        pygame.draw.rect(screen, (0, 0, 255), (1080, 0, 200, 40), 5)
         screen.blit(cursor, (x, y))
         pygame.display.update()
     while profile:
@@ -212,15 +253,32 @@ while True:
         for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()
-                profiles = False
+                profile = False
+                con.close()
                 quit()
         x, y = pygame.mouse.get_pos()
         bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
         screen.blit(bg_menu, (0, 0))
-        screen.blit(cursor, (x, y))
-        pause.fill((0, 80, 199))
-        pause.set_alpha(75)
-        screen.blit(pause, (240, 100))
-        pause_b.set_colorkey('BLACK')
-        screen.blit(pause_b, (240, 100))
+        profiles.fill((0, 80, 199))
+        profiles.set_alpha(75)
+        screen.blit(profiles, (240, 100))
+        profiles_b.set_colorkey('BLACK')
+        screen.blit(profiles_b, (240, 100))
+        profile_1.listen(events)
+        profile_1.draw()
+        profile_2.listen(events)
+        profile_2.draw()
+        profile_3.listen(events)
+        profile_3.draw()
+        profile_4.listen(events)
+        profile_4.draw()
+        menu_prof.listen(events)
+        menu_prof.draw()
+        pygame.draw.rect(profiles_b, (0, 0, 255), (0, 0, 750, 800), 15)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (225, 100, 295, 55), 7)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (225, 250, 295, 55), 7)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (225, 400, 295, 55), 7)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (225, 550, 295, 55), 7)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (210, 700, 335, 55), 7)
+        screen.blit(cursor, (x + 240, y + 100))
         pygame.display.update()
