@@ -77,8 +77,16 @@ pygame.mixer.init()
 con = sqlite3.connect(os.path.join('src\\profiles.db'))
 cur = con.cursor()
 soundtrack = pygame.mixer.Sound(os.path.join('images\\imperial_march.wav')) #путь до музыки в меню
+money_image = pygame.image.load(os.path.join('images\\Space\\gems\\money.png'))#иконка валюты в меню
+volume_image = pygame.image.load(os.path.join('images\\volume_icon.png'))# иконка звука в меню
+volume_image = pygame.transform.scale(volume_image, (75, 75))
+money_image = pygame.transform.scale(money_image, (75, 75))
+rect_money = money_image.get_rect()
+rect_volume = volume_image.get_rect()
+rect_volume.x = 0
+rect_volume.y = 920
 pygame.mixer.Sound.play(soundtrack)
-pygame.mixer.Sound.set_volume(soundtrack, 0.5) #изначальная громкость
+pygame.mixer.Sound.set_volume(soundtrack, 0.4) #изначальная громкость
 result = cur.execute("""SELECT * FROM data""").fetchall()
 fps = 60
 clock = pygame.time.Clock()
@@ -88,9 +96,8 @@ pause = pygame.Surface((750, 600))
 profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
 all_sprites = pygame.sprite.Group()
-print(result)
 pygame.mouse.set_visible(False)
-volume_slider = Slider(screen, 10, 920, 200, 20, min=0, max=100, step=10) #слайдер, можно дизайн переделать
+volume_slider = Slider(screen, 100, 920, 200, 20, min=0, max=100, step=10) #слайдер, можно дизайн переделать
 menu_b_profiles = Button(screen, 1080, 0, 200, 40, text='Профили', # кнопка с профилями пока не работает, бд в src лежит
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
@@ -242,6 +249,8 @@ while True:
         x, y = pygame.mouse.get_pos()
         bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
         screen.blit(bg_menu, (0, 0))
+        screen.blit(money_image, (0, 0))
+        screen.blit(volume_image, (0, 0))
         volume_slider.listen(events) #Отрисовка слайдера, кнопки и вызов функции
         volume_slider.draw()
         volume()
