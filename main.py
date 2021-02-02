@@ -56,8 +56,19 @@ def pick_profile():
     global menu
     profile = True
     menu = False
-    result = cur.execute("""SELECT * FROM data""").fetchall()
-    print(result)
+
+def pick_p(name):
+    global profile
+    global menu
+    global menu_b_profiles
+    profile = False
+    menu = True
+    menu_b_profiles = Button(screen, 1080, 0, 200, 40, text=name,
+                      fontSize=40, hoverColour=(78, 163, 39),
+                      inactiveColour=(50, 122, 17),
+                      pressedColour=(231, 247, 49),
+                      textColour=(0, 0, 255),
+                      onClick=pick_profile)
 
 
 
@@ -68,6 +79,7 @@ cur = con.cursor()
 soundtrack = pygame.mixer.Sound(os.path.join('images\\imperial_march.wav')) #путь до музыки в меню
 pygame.mixer.Sound.play(soundtrack)
 pygame.mixer.Sound.set_volume(soundtrack, 0.5) #изначальная громкость
+result = cur.execute("""SELECT * FROM data""").fetchall()
 fps = 60
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((1280, 960))
@@ -76,6 +88,7 @@ pause = pygame.Surface((750, 600))
 profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
 all_sprites = pygame.sprite.Group()
+print(result)
 pygame.mouse.set_visible(False)
 volume_slider = Slider(screen, 10, 920, 200, 20, min=0, max=100, step=10) #слайдер, можно дизайн переделать
 menu_b_profiles = Button(screen, 1080, 0, 200, 40, text='Профили', # кнопка с профилями пока не работает, бд в src лежит
@@ -132,30 +145,30 @@ pause_b_quit = Button(pause_b, 400, 500, 300, 60, text='Выйти из игры
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
                       onClick=lambda: pygame.quit())
-profile_1 = Button(profiles_b, 225, 100, 295, 55, text='Профиль 1',
+profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49),
                     textColour=(0, 0, 255),
-                    onClick=lambda: print('Click'))
-profile_2 = Button(profiles_b, 225, 250, 295, 55, text='Профиль 2',
+                    onClick=lambda: pick_p(result[0][1]))
+profile_2 = Button(profiles_b, 225, 250, 295, 55, text=f'{result[1][1]}',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49),
                     textColour=(0, 0, 255),
-                    onClick=lambda: print('Click'))
-profile_3 = Button(profiles_b, 225, 400, 295, 55, text='Профиль 3',
+                    onClick=lambda: pick_p(result[1][1]))
+profile_3 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[2][1]}',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49),
                     textColour=(0, 0, 255),
-                    onClick=lambda: print('Click'))
-profile_4 = Button(profiles_b, 225, 550, 295, 55, text='Профиль 4',
+                    onClick=lambda: pick_p(result[2][1]))
+profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49),
                     textColour=(0, 0, 255),
-                    onClick=lambda: print('Click'))
+                    onClick=lambda: pick_p(result[3][1]))
 menu_prof = Button(profiles_b, 210, 700, 335, 55, text='Вернуться в меню',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
@@ -174,6 +187,7 @@ while True:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 running = False
+                con.close()
                 quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
