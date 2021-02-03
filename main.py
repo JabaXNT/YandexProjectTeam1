@@ -28,10 +28,12 @@ def running_to_menu():
     global running
     global running_pause
     global profile
+    global top
     menu = True
     running = False
     running_pause = False
     profile = False
+    top = False
 
 
 def unpause():
@@ -61,16 +63,24 @@ def pick_p(name):
     global profile
     global menu
     global menu_b_profiles
+    global money_count
     profile = False
     menu = True
-    menu_b_profiles = Button(screen, 1080, 0, 200, 40, text=name,
+    menu_b_profiles = Button(screen, 1080, 0, 200, 40, text=name[1],
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49),
                       textColour=(0, 0, 255),
                       onClick=pick_profile)
+    money_count = font.render(f"{name[2]}", True, (100, 255, 100))
 
-
+def top_to_running():
+    global profile
+    global menu
+    global top
+    profile = False
+    menu = False
+    top = True
 
 pygame.init()
 pygame.mixer.init()
@@ -83,8 +93,6 @@ volume_image = pygame.transform.scale(volume_image, (75, 75))
 money_image = pygame.transform.scale(money_image, (75, 75))
 rect_money = money_image.get_rect()
 rect_volume = volume_image.get_rect()
-rect_volume.x = 0
-rect_volume.y = 920
 pygame.mixer.Sound.play(soundtrack)
 pygame.mixer.Sound.set_volume(soundtrack, 0.4) #изначальная громкость
 result = cur.execute("""SELECT * FROM data""").fetchall()
@@ -97,6 +105,9 @@ profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
 all_sprites = pygame.sprite.Group()
 pygame.mouse.set_visible(False)
+font = pygame.font.Font(None, 120)
+font2 = pygame.font.Font(None, 50)
+money_count = font.render(f"{result[0][2]}", True, (100, 255, 100))
 volume_slider = Slider(screen, 100, 920, 200, 20, min=0, max=100, step=10) #слайдер, можно дизайн переделать
 menu_b_profiles = Button(screen, 1080, 0, 200, 40, text='Профили', # кнопка с профилями пока не работает, бд в src лежит
                       fontSize=40, hoverColour=(78, 163, 39),
@@ -121,7 +132,7 @@ menu_b_top = Button(screen, 440, 500, 400, 70, text='Таблица рекорд
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49), radius=20,
                     textColour=(0, 0, 255),
-                    onClick=lambda: print('Click'))
+                    onClick=lambda: top_to_running())
 menu_b_quit = Button(screen, 440, 650, 400, 70, text='Выйти из игры',
                      fontSize=40, hoverColour=(78, 163, 39),
                      inactiveColour=(50, 122, 17),
@@ -157,26 +168,26 @@ profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49),
                     textColour=(0, 0, 255),
-                    onClick=lambda: pick_p(result[0][1]))
-profile_2 = Button(profiles_b, 225, 250, 295, 55, text=f'{result[1][1]}',
+                    onClick=lambda: pick_p(result[0]))
+profile_2 = Button(profiles_b, 225, 200, 295, 55, text=f'{result[1][1]}',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49),
                     textColour=(0, 0, 255),
-                    onClick=lambda: pick_p(result[1][1]))
-profile_3 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[2][1]}',
+                    onClick=lambda: pick_p(result[1]))
+profile_3 = Button(profiles_b, 225, 300, 295, 55, text=f'{result[2][1]}',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49),
                     textColour=(0, 0, 255),
-                    onClick=lambda: pick_p(result[2][1]))
-profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
+                    onClick=lambda: pick_p(result[2]))
+profile_4 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[3][1]}',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49),
                     textColour=(0, 0, 255),
-                    onClick=lambda: pick_p(result[3][1]))
-menu_prof = Button(profiles_b, 210, 700, 335, 55, text='Вернуться в меню',
+                    onClick=lambda: pick_p(result[3]))
+menu_prof = Button(profiles_b, 50, 550, 335, 55, text='Вернуться в меню',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49),
@@ -185,6 +196,8 @@ menu_prof = Button(profiles_b, 210, 700, 335, 55, text='Вернуться в м
 running = False
 running_pause = False
 profile = False
+top = False
+hangar = False
 menu = True
 cursor = load_image('arrow.png').convert_alpha()
 while True:
@@ -250,7 +263,8 @@ while True:
         bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         screen.blit(money_image, (0, 0))
-        screen.blit(volume_image, (0, 0))
+        screen.blit(money_count, (80, 0))
+        screen.blit(volume_image, (0, 890))
         volume_slider.listen(events) #Отрисовка слайдера, кнопки и вызов функции
         volume_slider.draw()
         volume()
@@ -299,9 +313,33 @@ while True:
         menu_prof.draw()
         pygame.draw.rect(profiles_b, (0, 0, 255), (0, 0, 750, 800), 15)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 100, 295, 55), 7)
-        pygame.draw.rect(profiles_b, (0, 0, 255), (225, 250, 295, 55), 7)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (225, 200, 295, 55), 7)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (225, 300, 295, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 400, 295, 55), 7)
-        pygame.draw.rect(profiles_b, (0, 0, 255), (225, 550, 295, 55), 7)
-        pygame.draw.rect(profiles_b, (0, 0, 255), (210, 700, 335, 55), 7)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (50, 550, 335, 55), 7)
+        screen.blit(cursor, (x + 240, y + 100))
+        pygame.display.update()
+    
+    while top:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                profile = False
+                con.close()
+                quit()
+        x, y = pygame.mouse.get_pos()
+        bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
+        screen.blit(bg_menu, (0, 0))
+        profiles.fill((0, 80, 199))
+        profiles.set_alpha(75)
+        screen.blit(profiles, (240, 100))
+        profiles_b.set_colorkey('BLACK')
+        screen.blit(profiles_b, (240, 100))
+        menu_prof.listen(events)
+        menu_prof.draw()
+        pygame.draw.rect(profiles_b, (0, 0, 255), (0, 0, 750, 800), 15)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (50, 50, 650, 400), 0)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (50, 550, 335, 55), 7)
         screen.blit(cursor, (x + 240, y + 100))
         pygame.display.update()
