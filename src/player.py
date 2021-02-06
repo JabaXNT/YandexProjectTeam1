@@ -10,23 +10,16 @@ class Player(pygame.sprite.Sprite):
         self.image = self.ship
         self.rect = self.ship.get_rect()
         self.rot = 0
-        self. speedy = 0
+        self.speedy = 0
         self.speedx = 0
         self.last_update = pygame.time.get_ticks()
         self.direction = 0
 
     def update(self):
         speed = self.get_speed()
-        speed = [math.trunc(speed[0]), math.trunc(speed[1])]
+        speed = list(map(lambda x: round(x), speed))
         self.rect.x += speed[0]
         self.rect.y += speed[1]
-        if self.rot in [90, 270]:
-            speed[0] = 3
-            speed[1] = 0
-        elif self.rot in [0, 180]:
-            speed[0] = 0
-            speed[1] = 3
-
         self.rotate()
 
     def rotate(self):
@@ -40,8 +33,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.center = self.center
 
     def get_speed(self):
-        speedx = -math.sin(math.radians(self.rot)) * 3
-        speedy = -math.cos(math.radians(self.rot)) * 3
+        speedx = -math.sin(math.radians(self.rot)) * 5
+        speedy = -math.cos(math.radians(self.rot)) * 5
         if -1 < speedy < 1:
             self.speedy += speedy
             if -1 < self.speedy < 1:
