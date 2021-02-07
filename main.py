@@ -7,6 +7,7 @@ from pygame_widgets import Button, Slider
 from src.player import Player
 from src.camera import Camera
 from src.obstacle import Obstacle
+from src.gem import Gem
 
 
 def load_image(name):
@@ -44,13 +45,14 @@ def unpause():
 
 def restart():
     global player
-    global all_sprites
+    global obstacles
     global running_pause
     global camera
+    global gems
     player = Player()
     camera = Camera()
-    all_sprites = pygame.sprite.Group()
-    all_sprites.add(player)
+    obstacles = pygame.sprite.Group()
+    gems = pygame.sprite.Group()
     running_pause = False
 
 
@@ -100,7 +102,6 @@ pause_b = pygame.Surface((750, 600))
 pause = pygame.Surface((750, 600))
 profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
-all_sprites = pygame.sprite.Group()
 pygame.mouse.set_visible(False)
 volume_slider = Slider(screen, 100, 920, 200, 20, min=0, max=100, step=10)  # слайдер, можно дизайн переделать
 menu_b_profiles = Button(screen, 1080, 0, 200, 40, text='Профили',
@@ -218,18 +219,28 @@ while True:
                         player.direction = 0
         bg_running = pygame.transform.scale(load_image('backgrounds\\space.jpg'), (1280, 960))
         screen.blit(bg_running, (0, 0))
-        for sprite in enumerate(all_sprites):
+        if not running_pause:
+            camera.apply(player)
+        screen.blit(player.image, (player.rect.x, player.rect.y))
+        for sprite in enumerate(obstacles):
             if not running_pause:
                 camera.apply(sprite[1])
             screen.blit(sprite[1].image, (sprite[1].rect.x, sprite[1].rect.y))
             if obs_count == 60:
                 if sprite[0] == 1 + nifo:
-                    if not (0 < sprite[1].rect.x < 1500 and 0 < sprite[1].rect.y < 1500):
+                    if not (-660 < sprite[1].rect.x < 1640 and -660 < sprite[1].rect.y < 1640):
                         sprite[1].kill()
                         obs_count -= 1
                         nifo = 0
                     else:
                         nifo += 1
+        for sprite in gems:
+            if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 2640 or sprite.rect.y < -1360):
+                sprite.kill()
+            if not running_pause:
+                camera.apply(sprite)
+            screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
+            sprite.update()
         if running_pause:
             pause.fill((0, 80, 199))
             pause.set_alpha(75)
@@ -252,16 +263,23 @@ while True:
             pygame.draw.rect(pause_b, (0, 0, 255), (53, 503, 295, 55), 7)
             screen.blit(cursor, (x + 240, y + 100))
         else:
-            for sprite in all_sprites:
+            for sprite in obstacles:
                 sprite.update()
-            if random.randint(1, 20) == 5:
+            player.update()
+            if random.randint(1, 20) == 1:
                 obstacle = Obstacle()
                 obstacle.rect.x = random.randint(-2360, 3640)
                 obstacle.rect.y = random.randint(-2520, 3480)
                 if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
-                    all_sprites.add(obstacle)
+                    obstacles.add(obstacle)
                 if obs_count < 60:
                     obs_count += 1
+            if random.randint(1, 100) == 1:
+                gem = Gem()
+                gem.rect.x = random.randint(-2360, 3640)
+                gem.rect.y = random.randint(-2520, 3480)
+                if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
+                    gems.add(gem)
             camera.update(player)
         clock.tick(fps)
         pygame.display.update()
