@@ -16,20 +16,25 @@ class Obstacle(pygame.sprite.Sprite):
         if self.koefx + self.koefy < 6:
             self.image = pygame.image.load(os.path.join('images\\space\\asteroid.png'))
             self.image = pygame.transform.rotate(self.image, random.randrange(0, 365))
-            self.image = pygame.transform.scale(self.image, (146, 146))
+            self.image = pygame.transform.scale(self.image, (100, 100))
         else:
             self.image = pygame.image.load(os.path.join('images\\space\\comet.png')).convert_alpha()
             self.image = pygame.transform.rotate(self.image, self.rot - 130)
-            self.image = pygame.transform.scale(self.image, (234, 209))
+            self.image = pygame.transform.scale(self.image, (159, 142))
         self.rect = self.image.get_rect()
         self.speedy = 0
         self.speedx = 0
 
-    def update(self):
+    def update(self, obstacles):
         speed = self.get_speed()
         speed = list(map(lambda x: round(x), speed))
         self.rect.x += speed[0]
         self.rect.y += speed[1]
+        for obstacle in obstacles:
+            if self != obstacle and self.rect.colliderect(obstacle.rect):
+                obstacle.kill()
+                self.kill()
+                return True
 
     def get_speed(self):
         speedx = -math.sin(math.radians(self.rot)) * self.koefx

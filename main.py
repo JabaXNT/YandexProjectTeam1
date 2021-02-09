@@ -1,22 +1,14 @@
 import random
 import pygame
 import os
-import sys
 import sqlite3
 from pygame_widgets import Button, Slider
 from src.player import Player
 from src.camera import Camera
 from src.obstacle import Obstacle
 from src.gem import Gem
-
-
-def load_image(name):
-    fullname = os.path.join('images', name)
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-    return image
+from src.explosion import Explosion
+from src.sparkle import Sparkle
 
 
 def menu_to_running():
@@ -49,6 +41,10 @@ def restart():
     global running_pause
     global camera
     global gems
+    global sparkles
+    global explosions
+    sparkles = pygame.sprite.Group()
+    explosions = pygame.sprite.Group()
     player = Player()
     camera = Camera()
     obstacles = pygame.sprite.Group()
@@ -193,7 +189,7 @@ running = False
 running_pause = False
 profile = False
 menu = True
-cursor = load_image('arrow.png').convert_alpha()
+cursor = pygame.image.load(os.path.join('images\\arrow.png')).convert_alpha()
 while True:
     while running:
         events = pygame.event.get()
@@ -217,14 +213,20 @@ while True:
                         player.direction = 0
                     if event.key == pygame.K_RIGHT:
                         player.direction = 0
-        bg_running = pygame.transform.scale(load_image('backgrounds\\space.jpg'), (1280, 960))
+        bg_running = pygame.transform.scale(pygame.image.load(os.path.join('images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_running, (0, 0))
         if not running_pause:
             camera.apply(player)
-        screen.blit(player.image, (player.rect.x, player.rect.y))
+        if not player.is_game_over:
+            screen.blit(player.image, (player.rect.x, player.rect.y))
         for sprite in enumerate(obstacles):
             if not running_pause:
                 camera.apply(sprite[1])
+                if sprite[1].update(obstacles):
+                    explosion = Explosion()
+                    explosion.rect.x = sprite[1].rect.x
+                    explosion.rect.y = sprite[1].rect.y
+                    explosions.add(explosion)
             screen.blit(sprite[1].image, (sprite[1].rect.x, sprite[1].rect.y))
             if obs_count == 60:
                 if sprite[0] == 1 + nifo:
@@ -234,13 +236,36 @@ while True:
                         nifo = 0
                     else:
                         nifo += 1
+            if pygame.sprite.collide_mask(player, sprite[1]):
+                sprite[1].kill()
+                player.is_game_over = True
+                explosion = Explosion()
+                explosion.rect.x = player.rect.x
+                explosion.rect.y = player.rect.y
+                explosions.add(explosion)
         for sprite in gems:
             if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 2640 or sprite.rect.y < -1360):
                 sprite.kill()
             if not running_pause:
                 camera.apply(sprite)
+            if pygame.sprite.collide_mask(player, sprite):
+                sprite.kill()
+                sparkle = Sparkle()
+                sparkle.rect.x = player.rect.x
+                sparkle.rect.y = player.rect.y
+                sparkles.add(sparkle)
             screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
             sprite.update()
+        for sprite in explosions:
+            if not running_pause:
+                sprite.update()
+            screen.blit(sprite.explosion, (sprite.rect.x, sprite.rect.y))
+            camera.apply(sprite)
+        for sprite in sparkles:
+            if not running_pause:
+                sprite.update()
+            screen.blit(sprite.sparkle, (sprite.rect.x, sprite.rect.y))
+            camera.apply(sprite)
         if running_pause:
             pause.fill((0, 80, 199))
             pause.set_alpha(75)
@@ -263,18 +288,15 @@ while True:
             pygame.draw.rect(pause_b, (0, 0, 255), (53, 503, 295, 55), 7)
             screen.blit(cursor, (x + 240, y + 100))
         else:
-            for sprite in obstacles:
-                sprite.update()
             player.update()
-            if random.randint(1, 20) == 1:
-                obstacle = Obstacle()
-                obstacle.rect.x = random.randint(-2360, 3640)
-                obstacle.rect.y = random.randint(-2520, 3480)
-                if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
-                    obstacles.add(obstacle)
-                if obs_count < 60:
-                    obs_count += 1
-            if random.randint(1, 100) == 1:
+            obstacle = Obstacle()
+            obstacle.rect.x = random.randint(-2360, 3640)
+            obstacle.rect.y = random.randint(-2520, 3480)
+            if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
+                obstacles.add(obstacle)
+            if obs_count < 60:
+                obs_count += 1
+            if random.randint(1, 50) == 1:
                 gem = Gem()
                 gem.rect.x = random.randint(-2360, 3640)
                 gem.rect.y = random.randint(-2520, 3480)
@@ -292,7 +314,7 @@ while True:
                 con.close()
                 quit()
         x, y = pygame.mouse.get_pos()
-        bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
+        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join('images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         screen.blit(money_image, (0, 0))
         screen.blit(volume_image, (0, 885))
@@ -325,7 +347,7 @@ while True:
                 con.close()
                 quit()
         x, y = pygame.mouse.get_pos()
-        bg_menu = pygame.transform.scale(load_image('backgrounds\\menu.jpg'), (1280, 960))
+        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join('images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         profiles.fill((0, 80, 199))
         profiles.set_alpha(75)
