@@ -15,12 +15,14 @@ class Player(pygame.sprite.Sprite):
         self.speedx = 0
         self.last_update = pygame.time.get_ticks()
         self.direction = 0
+        self.is_game_over = False
 
     def update(self):
         speed = self.get_speed()
         speed = list(map(lambda x: round(x), speed))
-        self.rect.x += speed[0]
-        self.rect.y += speed[1]
+        if not self.is_game_over:
+            self.rect.x += speed[0]
+            self.rect.y += speed[1]
         self.rotate()
 
     def rotate(self):
@@ -34,8 +36,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.center = self.center
 
     def get_speed(self):
-        speedx = -math.sin(math.radians(self.rot)) * 5
-        speedy = -math.cos(math.radians(self.rot)) * 5
+        speedx = -math.sin(math.radians(self.rot)) * 8
+        speedy = -math.cos(math.radians(self.rot)) * 8
         if -1 < speedy < 1:
             self.speedy += speedy
             if -1 < self.speedy < 1:

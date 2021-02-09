@@ -25,11 +25,16 @@ class Obstacle(pygame.sprite.Sprite):
         self.speedy = 0
         self.speedx = 0
 
-    def update(self):
+    def update(self, obstacles):
         speed = self.get_speed()
         speed = list(map(lambda x: round(x), speed))
         self.rect.x += speed[0]
         self.rect.y += speed[1]
+        for obstacle in obstacles:
+            if self != obstacle and self.rect.colliderect(obstacle.rect):
+                obstacle.kill()
+                self.kill()
+                return True
 
     def get_speed(self):
         speedx = -math.sin(math.radians(self.rot)) * self.koefx
