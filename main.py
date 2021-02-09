@@ -266,7 +266,7 @@ while True:
             for sprite in obstacles:
                 sprite.update()
             player.update()
-            if random.randint(1, 20) == 1:
+            if random.randint(1, 5) == 1:
                 obstacle = Obstacle()
                 obstacle.rect.x = random.randint(-2360, 3640)
                 obstacle.rect.y = random.randint(-2520, 3480)

@@ -9,6 +9,7 @@ class Player(pygame.sprite.Sprite):
         self.ship = pygame.image.load(os.path.join('images\\Ships\\begin\\1.png')).convert_alpha()
         self.image = self.ship
         self.rect = self.ship.get_rect()
+        self.ship = pygame.transform.scale(self.ship, (int(self.rect.size[0] / 1.5), int(self.rect.size[1] / 1.5)))
         self.rot = 0
         self.speedy = 0
         self.speedx = 0
