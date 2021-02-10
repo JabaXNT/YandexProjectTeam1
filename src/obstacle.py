@@ -8,12 +8,12 @@ class Obstacle(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         lst = []
-        for i in range(41):
+        for i in range(51):
             lst.append(0 + i * 0.1)
         self.koefx = random.choice(lst)
         self.koefy = random.choice(lst)
         self.rot = random.randrange(0, 365)
-        if self.koefx + self.koefy < 6:
+        if self.koefx + self.koefy < 7:
             self.image = pygame.image.load(os.path.join('images\\space\\asteroid.png'))
             self.image = pygame.transform.rotate(self.image, random.randrange(0, 365))
             self.image = pygame.transform.scale(self.image, (100, 100))

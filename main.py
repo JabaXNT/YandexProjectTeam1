@@ -22,11 +22,9 @@ def menu_to_running():
 def running_to_menu():
     global menu
     global running
-    global running_pause
     global profile
     menu = True
     running = False
-    running_pause = False
     profile = False
 
 
@@ -43,6 +41,9 @@ def restart():
     global gems
     global sparkles
     global explosions
+    global is_game_over
+    global col
+    is_game_over = False
     sparkles = pygame.sprite.Group()
     explosions = pygame.sprite.Group()
     player = Player()
@@ -50,6 +51,7 @@ def restart():
     obstacles = pygame.sprite.Group()
     gems = pygame.sprite.Group()
     running_pause = False
+    col = 9999999999999999
 
 
 def volume():  # функция для изменения звука(вызывется в главном цикле)
@@ -90,12 +92,13 @@ pygame.mixer.Sound.play(soundtrack)
 pygame.mixer.Sound.set_volume(soundtrack, 0.4)  # изначальная громкость
 result = cur.execute("""SELECT * FROM data""").fetchall()
 fps = 60
-obs_count = 0
-nifo = 0
+game_over_text = pygame.font.Font(None, 70).render("ИГРА ОКОНЧЕНА", True, (0, 0, 255))
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((1280, 960))
-pause_b = pygame.Surface((750, 600))
-pause = pygame.Surface((750, 600))
+pause_b = pygame.Surface((800, 600))
+pause = pygame.Surface((800, 600))
+game_over = pygame.Surface((800, 300))
+game_over_b = pygame.Surface((800, 300))
 profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
 pygame.mouse.set_visible(False)
@@ -143,18 +146,30 @@ pause_b_restart = Button(pause_b, 50, 500, 300, 60, text='Заново',
                          pressedColour=(231, 247, 49), radius=20,
                          textColour=(0, 0, 255),
                          onClick=lambda: restart())
-pause_b_menu = Button(pause_b, 400, 360, 300, 60, text='В главное меню',
+pause_b_menu = Button(pause_b, 450, 360, 300, 60, text='В главное меню',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
                       onClick=lambda: running_to_menu())
-pause_b_quit = Button(pause_b, 400, 500, 300, 60, text='Выйти из игры',
+pause_b_quit = Button(pause_b, 450, 500, 300, 60, text='Выйти из игры',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
                       onClick=lambda: pygame.quit())
+game_over_restart = Button(game_over_b, 50, 170, 300, 60, text='Заново',
+                         fontSize=40, hoverColour=(78, 163, 39),
+                         inactiveColour=(50, 122, 17),
+                         pressedColour=(231, 247, 49), radius=20,
+                         textColour=(0, 0, 255),
+                         onClick=lambda: restart())
+game_over_menu = Button(game_over_b, 450, 170, 300, 60, text='В главное меню',
+                      fontSize=40, hoverColour=(78, 163, 39),
+                      inactiveColour=(50, 122, 17),
+                      pressedColour=(231, 247, 49), radius=20,
+                      textColour=(0, 0, 255),
+                      onClick=lambda: running_to_menu())
 profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
@@ -201,7 +216,8 @@ while True:
                 quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    running_pause = True
+                    if not is_game_over:
+                        running_pause = True
                 if not running_pause:
                     if event.key == pygame.K_LEFT:
                         player.direction = 5
@@ -215,38 +231,33 @@ while True:
                         player.direction = 0
         bg_running = pygame.transform.scale(pygame.image.load(os.path.join('images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_running, (0, 0))
-        if not running_pause:
+        if not running_pause and not is_game_over:
             camera.apply(player)
-        if not player.is_game_over:
+        if not is_game_over:
             screen.blit(player.image, (player.rect.x, player.rect.y))
         for sprite in enumerate(obstacles):
-            if not running_pause:
+            if not running_pause and not is_game_over:
                 camera.apply(sprite[1])
                 if sprite[1].update(obstacles):
                     explosion = Explosion()
                     explosion.rect.x = sprite[1].rect.x
                     explosion.rect.y = sprite[1].rect.y
                     explosions.add(explosion)
-            screen.blit(sprite[1].image, (sprite[1].rect.x, sprite[1].rect.y))
-            if obs_count == 60:
-                if sprite[0] == 1 + nifo:
-                    if not (-660 < sprite[1].rect.x < 1640 and -660 < sprite[1].rect.y < 1640):
-                        sprite[1].kill()
-                        obs_count -= 1
-                        nifo = 0
-                    else:
-                        nifo += 1
+            if -200 < sprite[1].rect.x < 1280 and -150 < sprite[1].rect.y < 960:
+                screen.blit(sprite[1].image, (sprite[1].rect.x, sprite[1].rect.y))
+            if (sprite[1].rect.x > 1640 or sprite[1].rect.x < -360) and (sprite[1].rect.y > 1280 or sprite[1].rect.y < -520):
+                sprite[1].kill()
             if pygame.sprite.collide_mask(player, sprite[1]):
                 sprite[1].kill()
-                player.is_game_over = True
                 explosion = Explosion()
                 explosion.rect.x = player.rect.x
                 explosion.rect.y = player.rect.y
                 explosions.add(explosion)
+                col = pygame.time.get_ticks()
         for sprite in gems:
-            if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 2640 or sprite.rect.y < -1360):
+            if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 1980 or sprite.rect.y < -1020):
                 sprite.kill()
-            if not running_pause:
+            if not running_pause and not is_game_over:
                 camera.apply(sprite)
             if pygame.sprite.collide_mask(player, sprite):
                 sprite.kill()
@@ -254,20 +265,21 @@ while True:
                 sparkle.rect.x = player.rect.x
                 sparkle.rect.y = player.rect.y
                 sparkles.add(sparkle)
-            screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
+            if -200 < sprite.rect.x < 1280 and -150 < sprite.rect.y < 960:
+                screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
             sprite.update()
         for sprite in explosions:
-            if not running_pause:
+            if not running_pause and not is_game_over:
                 sprite.update()
+                camera.apply(sprite)
             screen.blit(sprite.explosion, (sprite.rect.x, sprite.rect.y))
-            camera.apply(sprite)
         for sprite in sparkles:
-            if not running_pause:
+            if not running_pause and not is_game_over:
                 sprite.update()
             screen.blit(sprite.sparkle, (sprite.rect.x, sprite.rect.y))
             camera.apply(sprite)
         if running_pause:
-            pause.fill((0, 80, 199))
+            pause.fill((0, 50, 200))
             pause.set_alpha(75)
             screen.blit(pause, (240, 100))
             pause_b.set_colorkey('BLACK')
@@ -281,28 +293,47 @@ while True:
             pause_b_quit.listen(events)
             pause_b_quit.draw()
             x, y = pygame.mouse.get_pos()
-            pygame.draw.rect(pause_b, (0, 0, 255), (0, 0, 750, 600), 15)
-            pygame.draw.rect(pause_b, (0, 0, 255), (403, 503, 295, 55), 7)
-            pygame.draw.rect(pause_b, (0, 0, 255), (403, 363, 295, 55), 7)
+            pygame.draw.rect(pause_b, (0, 0, 255), (0, 0, 800, 600), 15)
+            pygame.draw.rect(pause_b, (0, 0, 255), (453, 503, 295, 55), 7)
+            pygame.draw.rect(pause_b, (0, 0, 255), (453, 363, 295, 55), 7)
             pygame.draw.rect(pause_b, (0, 0, 255), (53, 363, 295, 55), 7)
             pygame.draw.rect(pause_b, (0, 0, 255), (53, 503, 295, 55), 7)
             screen.blit(cursor, (x + 240, y + 100))
+        elif is_game_over:
+            game_over.fill((0, 50, 200))
+            game_over.set_alpha(75)
+            screen.blit(game_over, (240, 300))
+            game_over_b.set_colorkey('BLACK')
+            screen.blit(game_over_b, (240, 300))
+            game_over_menu.listen(events)
+            game_over_menu.draw()
+            game_over_restart.listen(events)
+            game_over_restart.draw()
+            x, y = pygame.mouse.get_pos()
+            pygame.draw.rect(game_over_b, (0, 0, 255), (0, 0, 800, 300), 15)
+            pygame.draw.rect(game_over_b, (0, 0, 255), (53, 173, 295, 55), 7)
+            pygame.draw.rect(game_over_b, (0, 0, 255), (453, 173, 295, 55), 7)
+            screen.blit(game_over_text, (430, 350))
+            screen.blit(cursor, (x + 240, y + 300))
         else:
-            player.update()
+            if col == 9999999999999999:
+                player.update()
+            else:
+                player.image = pygame.image.load(os.path.join('images\\Space\\explosion\\8.png')).convert_alpha()
             obstacle = Obstacle()
-            obstacle.rect.x = random.randint(-2360, 3640)
-            obstacle.rect.y = random.randint(-2520, 3480)
-            if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
+            obstacle.rect.x = random.randint(-1360, 1640)
+            obstacle.rect.y = random.randint(-520, 1280)
+            if not (-200 < obstacle.rect.x < 1280 and -150 < obstacle.rect.y < 960):
                 obstacles.add(obstacle)
-            if obs_count < 60:
-                obs_count += 1
             if random.randint(1, 50) == 1:
                 gem = Gem()
-                gem.rect.x = random.randint(-2360, 3640)
-                gem.rect.y = random.randint(-2520, 3480)
+                gem.rect.x = random.randint(-1360, 2640)
+                gem.rect.y = random.randint(-1020, 1980)
                 if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
                     gems.add(gem)
             camera.update(player)
+            if pygame.time.get_ticks() -700 > col:
+                is_game_over = True
         clock.tick(fps)
         pygame.display.update()
     while menu:
