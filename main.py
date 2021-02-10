@@ -68,8 +68,12 @@ def pick_p(name, value):
     global menu
     global menu_b_profiles
     global moneys
+    global active_profile
+    global active_value
     profile = False
     menu = True
+    active_profile = name
+    active_value = value
     menu_b_profiles = Button(screen, 0, 0, 200, 40, text=name,
                              fontSize=40, hoverColour=(78, 163, 39),
                              inactiveColour=(50, 122, 17),
@@ -99,6 +103,8 @@ result = cur.execute("""SELECT * FROM data""").fetchall()
 fps = 60
 obs_count = 0
 nifo = 0
+active_profile = 'Ilya'
+active_value = 0
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((1280, 960))
 pause_b = pygame.Surface((750, 600))
@@ -262,6 +268,10 @@ while True:
                 sparkle.rect.x = player.rect.x
                 sparkle.rect.y = player.rect.y
                 sparkles.add(sparkle)
+                res = cur.execute(f'UPDATE data SET money = {active_value} + 1 WHERE name = {active_profile}')
+                con.commit()
+                res2 = cur.execute(f'SELECT money FROM data WHERE id = 1').fetchall()
+                moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
             screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
             sprite.update()
         for sprite in explosions:
