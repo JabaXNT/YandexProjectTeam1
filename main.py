@@ -82,14 +82,13 @@ def pick_p(name, value, id):
                              pressedColour=(231, 247, 49),
                              textColour=(0, 0, 255),
                              onClick=pick_profile)
-    moneys = font.render(f'{value}', False, (100, 255, 100))
+    moneys = pygame.font.Font(None, 130).render(f'{value}', False, (100, 255, 100))
 
 
 pygame.init()
 pygame.mixer.init()
 con = sqlite3.connect(os.path.join('src\\profiles.db'))
 cur = con.cursor()
-font = pygame.font.Font(None, 120)
 soundtrack = pygame.mixer.Sound(os.path.join(
     'images\\imperial_march.wav'))  # путь до музыки в меню
 money_image = pygame.image.load(os.path.join(
@@ -98,7 +97,7 @@ volume_image = pygame.image.load(os.path.join(
     'images\\volume_icon.png'))  # иконка звука в меню
 volume_image = pygame.transform.scale(volume_image, (75, 75))
 money_image = pygame.transform.scale(money_image, (75, 75))
-moneys = font.render("0", False, (100, 255, 100))
+moneys = pygame.font.Font(None, 120).render("0", False, (100, 255, 100))
 pygame.mixer.Sound.play(soundtrack)
 pygame.mixer.Sound.set_volume(soundtrack, 0.4)
 result = cur.execute("""SELECT * FROM data""").fetchall()
@@ -274,7 +273,7 @@ while True:
                 con.commit()
                 res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
                 result = cur.execute("""SELECT * FROM data""").fetchall()
-                moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
+                moneys = pygame.font.Font(None, 130).render(f'{res2[0][0]}', False, (100, 255, 100))
             screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
             sprite.update()
         for sprite in explosions:
@@ -343,6 +342,7 @@ while True:
             'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         screen.blit(money_image, (1200, 5))
+        screen.blit(moneys, (1200 - moneys.get_width(), 0))
         screen.blit(volume_image, (0, 885))
         # Отрисовка слайдера, кнопки и вызов функции
         volume_slider.listen(events)
