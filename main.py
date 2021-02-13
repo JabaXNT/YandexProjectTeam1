@@ -63,16 +63,16 @@ def pick_profile():
     menu = False
 
 
-def pick_p(name, value):
+def pick_p(name, value, id):
     global profile
     global menu
     global menu_b_profiles
     global moneys
-    global active_profile
+    global active_profile_id
     global active_value
     profile = False
     menu = True
-    active_profile = name
+    active_profile_id = id
     active_value = value
     menu_b_profiles = Button(screen, 0, 0, 200, 40, text=name,
                              fontSize=40, hoverColour=(78, 163, 39),
@@ -103,8 +103,8 @@ result = cur.execute("""SELECT * FROM data""").fetchall()
 fps = 60
 obs_count = 0
 nifo = 0
-active_profile = 'Ilya'
-active_value = 0
+active_profile_id = 1
+active_value = result[0][2]
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((1280, 960))
 pause_b = pygame.Surface((750, 600))
@@ -173,25 +173,25 @@ profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=lambda: pick_p(result[0][1], result[0][2]))
+                   onClick=lambda: pick_p(result[0][1], result[0][2], result[0][0]))
 profile_2 = Button(profiles_b, 225, 250, 295, 55, text=f'{result[1][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=lambda: pick_p(result[1][1], result[1][2]))
+                   onClick=lambda: pick_p(result[1][1], result[1][2], result[1][0]))
 profile_3 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[2][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=lambda: pick_p(result[2][1], result[2][2]))
+                   onClick=lambda: pick_p(result[2][1], result[2][2], result[2][0]))
 profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=lambda: pick_p(result[3][1], result[3][2]))
+                   onClick=lambda: pick_p(result[3][1], result[3][2], result[3][0]))
 menu_prof = Button(profiles_b, 210, 700, 335, 55, text='Вернуться в меню',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
@@ -268,9 +268,10 @@ while True:
                 sparkle.rect.x = player.rect.x
                 sparkle.rect.y = player.rect.y
                 sparkles.add(sparkle)
-                res = cur.execute(f'UPDATE data SET money = {active_value} + 1 WHERE name = {active_profile}')
+                res = cur.execute(f'UPDATE data SET money = {active_value} + 1 WHERE id = {active_profile_id}')
                 con.commit()
-                res2 = cur.execute(f'SELECT money FROM data WHERE id = 1').fetchall()
+                res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
+                result = cur.execute("""SELECT * FROM data""").fetchall()
                 moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
             screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
             sprite.update()
