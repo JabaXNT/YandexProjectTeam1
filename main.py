@@ -43,6 +43,8 @@ def restart():
     global gems
     global sparkles
     global explosions
+    global score
+    score = 0
     sparkles = pygame.sprite.Group()
     explosions = pygame.sprite.Group()
     player = Player()
@@ -230,7 +232,7 @@ while True:
         for sprite in enumerate(obstacles):
             if not running_pause:
                 camera.apply(sprite[1])
-                if sprite[1].update(obstacles):
+                if sprite[1].update(obstacles):  # Взрыв
                     explosion = Explosion()
                     explosion.rect.x = sprite[1].rect.x
                     explosion.rect.y = sprite[1].rect.y
@@ -244,7 +246,7 @@ while True:
                         nifo = 0
                     else:
                         nifo += 1
-            if pygame.sprite.collide_mask(player, sprite[1]):
+            if pygame.sprite.collide_mask(player, sprite[1]):  # Взрыв
                 sprite[1].kill()
                 player.is_game_over = True
                 explosion = Explosion()
@@ -256,7 +258,7 @@ while True:
                 sprite.kill()
             if not running_pause:
                 camera.apply(sprite)
-            if pygame.sprite.collide_mask(player, sprite):
+            if pygame.sprite.collide_mask(player, sprite):  #  Гем
                 sprite.kill()
                 sparkle = Sparkle()
                 sparkle.rect.x = player.rect.x
@@ -274,6 +276,7 @@ while True:
                 sprite.update()
             screen.blit(sprite.sparkle, (sprite.rect.x, sprite.rect.y))
             camera.apply(sprite)
+        screen.blit(money_image, (1200, 5))
         if running_pause:
             pause.fill((0, 80, 199))
             pause.set_alpha(75)
@@ -311,6 +314,9 @@ while True:
                 if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
                     gems.add(gem)
             camera.update(player)
+            score += 0.1
+            score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
+        screen.blit(score_text, (5, 20))
         clock.tick(fps)
         pygame.display.update()
     while menu:
@@ -325,8 +331,7 @@ while True:
         bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
             'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
-        screen.blit(money_image, (1200, 0))
-        screen.blit(moneys, (1200 - moneys.get_width(), 0))
+        screen.blit(money_image, (1200, 5))
         screen.blit(volume_image, (0, 885))
         # Отрисовка слайдера, кнопки и вызов функции
         volume_slider.listen(events)
