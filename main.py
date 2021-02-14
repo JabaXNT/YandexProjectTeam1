@@ -22,11 +22,9 @@ def menu_to_running():
 def running_to_menu():
     global menu
     global running
-    global running_pause
     global profile
     menu = True
     running = False
-    running_pause = False
     profile = False
 
 
@@ -44,6 +42,8 @@ def restart():
     global sparkles
     global explosions
     global score
+    global is_game_over
+    global col
     score = 0
     sparkles = pygame.sprite.Group()
     explosions = pygame.sprite.Group()
@@ -52,6 +52,8 @@ def restart():
     obstacles = pygame.sprite.Group()
     gems = pygame.sprite.Group()
     running_pause = False
+    is_game_over = False
+    col = 9999999999
 
 
 def volume():  # функция для изменения звука(вызывется в главном цикле)
@@ -103,12 +105,15 @@ pygame.mixer.Sound.play(soundtrack)
 pygame.mixer.Sound.set_volume(soundtrack, 0.4)
 result = cur.execute("""SELECT * FROM data""").fetchall()
 fps = 60
+game_over_text = pygame.font.Font(None, 70).render('ИГРА ОКНЧЕНА', True, (0, 0, 255))
 obs_count = 0
 nifo = 0
 active_profile_id = 1
 active_value = result[0][2]
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((1280, 960))
+game_over = pygame.Surface((800, 300))
+game_over_b = pygame.Surface((800, 300))
 pause_b = pygame.Surface((750, 600))
 pause = pygame.Surface((750, 600))
 profiles = pygame.Surface((750, 800))
@@ -170,6 +175,18 @@ pause_b_quit = Button(pause_b, 400, 500, 300, 60, text='Выйти из игры
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
                       onClick=lambda: pygame.quit())
+game_over_restart = Button(game_over_b, 50, 170, 300, 60, text='Заново',
+                         fontSize=40, hoverColour=(78, 163, 39),
+                         inactiveColour=(50, 122, 17),
+                         pressedColour=(231, 247, 49), radius=20,
+                         textColour=(0, 0, 255),
+                         onClick=lambda: restart())
+game_over_menu = Button(game_over_b, 450, 170, 300, 60, text='В главное меню',
+                      fontSize=40, hoverColour=(78, 163, 39),
+                      inactiveColour=(50, 122, 17),
+                      pressedColour=(231, 247, 49), radius=20,
+                      textColour=(0, 0, 255),
+                      onClick=lambda: running_to_menu())
 profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
@@ -231,12 +248,12 @@ while True:
         bg_running = pygame.transform.scale(pygame.image.load(os.path.join(
             'images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_running, (0, 0))
-        if not running_pause:
+        if not running_pause and not is_game_over:
             camera.apply(player)
-        if not player.is_game_over:
+        if not is_game_over:
             screen.blit(player.image, (player.rect.x, player.rect.y))
         for sprite in enumerate(obstacles):
-            if not running_pause:
+            if not running_pause and not is_game_over:
                 camera.apply(sprite[1])
                 if sprite[1].update(obstacles):  # Взрыв
                     explosion = Explosion()
@@ -259,10 +276,11 @@ while True:
                 explosion.rect.x = player.rect.x
                 explosion.rect.y = player.rect.y
                 explosions.add(explosion)
+                col = pygame.time.get_ticks()
         for sprite in gems:
             if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 2640 or sprite.rect.y < -1360):
                 sprite.kill()
-            if not running_pause:
+            if not running_pause and not is_game_over:
                 camera.apply(sprite)
             if pygame.sprite.collide_mask(player, sprite):  #  Гем
                 sprite.kill()
@@ -309,24 +327,45 @@ while True:
             pygame.draw.rect(pause_b, (0, 0, 255), (53, 363, 295, 55), 7)
             pygame.draw.rect(pause_b, (0, 0, 255), (53, 503, 295, 55), 7)
             screen.blit(cursor, (x + 240, y + 100))
+        elif is_game_over:
+            game_over.fill((0, 50, 200))
+            game_over.set_alpha(75)
+            screen.blit(game_over, (240, 300))
+            game_over_b.set_colorkey('BLACK')
+            screen.blit(game_over_b, (240, 300))
+            game_over_menu.listen(events)
+            game_over_menu.draw()
+            game_over_restart.listen(events)
+            game_over_restart.draw()
+            x, y = pygame.mouse.get_pos()
+            pygame.draw.rect(game_over_b, (0, 0, 255), (0, 0, 800, 300), 15)
+            pygame.draw.rect(game_over_b, (0, 0, 255), (53, 173, 295, 55), 7)
+            pygame.draw.rect(game_over_b, (0, 0, 255), (453, 173, 295, 55), 7)
+            screen.blit(game_over_text, (430, 350))
+            screen.blit(cursor, (x + 240, y + 300))
         else:
-            player.update()
-            obstacle = Obstacle()
-            obstacle.rect.x = random.randint(-2360, 3640)
-            obstacle.rect.y = random.randint(-2520, 3480)
-            if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
-                obstacles.add(obstacle)
-            if obs_count < 60:
-                obs_count += 1
-            if random.randint(1, 50) == 1:
-                gem = Gem()
-                gem.rect.x = random.randint(-2360, 3640)
-                gem.rect.y = random.randint(-2520, 3480)
-                if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
-                    gems.add(gem)
-            camera.update(player)
-            score += 0.1
-            score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
+            if col == 9999999999:
+                player.update()
+                score += 0.1
+            else:
+                player.image = pygame.image.load(os.path.join('images\\Space\\explosion\\8.png')).convert_alpha()
+        obstacle = Obstacle()
+        obstacle.rect.x = random.randint(-2360, 3640)
+        obstacle.rect.y = random.randint(-2520, 3480)
+        if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
+            obstacles.add(obstacle)
+        if obs_count < 60:
+            obs_count += 1
+        if random.randint(1, 50) == 1:
+            gem = Gem()
+            gem.rect.x = random.randint(-2360, 3640)
+            gem.rect.y = random.randint(-2520, 3480)
+            if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
+                gems.add(gem)
+        camera.update(player)
+        if pygame.time.get_ticks() - 700 > col:
+            is_game_over = True
+        score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
         screen.blit(score_text, (5, 20))
         clock.tick(fps)
         pygame.display.update()
