@@ -141,98 +141,97 @@ menu_b_profiles = Button(screen, 0, 0, 200, 40, text='Профили',
                          inactiveColour=(50, 122, 17),
                          pressedColour=(231, 247, 49),
                          textColour=(0, 0, 255),
-                         onClick=on_click_button, onRelease= pick_profile)
+                         onClick=on_click_button, onRelease=pick_profile)
 menu_b_start = Button(screen, 440, 200, 400, 70, text='Играть',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
-                      onClick=on_click_button, onRelease= menu_to_running)
+                      onClick=on_click_button, onRelease=menu_to_running)
 menu_b_hangar = Button(screen, 440, 350, 400, 70, text='Ангар',
                        fontSize=40, hoverColour=(78, 163, 39),
                        inactiveColour=(50, 122, 17),
                        pressedColour=(231, 247, 49), radius=20,
                        textColour=(0, 0, 255),
-                       onClick=on_click_button, onRelease= lambda:print('click'))
+                       onClick=on_click_button, onRelease=lambda: print('click'))
 menu_b_top = Button(screen, 440, 500, 400, 70, text='Таблица рекордов',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49), radius=20,
                     textColour=(0, 0, 255),
-                    onClick=on_click_button, onRelease= lambda:print('click'))
+                    onClick=on_click_button, onRelease=lambda: print('click'))
 menu_b_quit = Button(screen, 440, 650, 400, 70, text='Выйти из игры',
                      fontSize=40, hoverColour=(78, 163, 39),
                      inactiveColour=(50, 122, 17),
                      pressedColour=(231, 247, 49), radius=20,
                      textColour=(0, 0, 255),
-                     onClick=on_click_button, onRelease= lambda: pygame.quit())
+                     onClick=on_click_button, onRelease=lambda: pygame.quit())
 pause_b_coninue = Button(pause_b, 50, 360, 300, 60, text='Продолжить',
                          fontSize=40, hoverColour=(78, 163, 39),
                          inactiveColour=(50, 122, 17),
                          pressedColour=(231, 247, 49), radius=20,
                          textColour=(0, 0, 255),
-                         onClick=on_click_button, onRelease= lambda: unpause())
+                         onClick=on_click_button, onRelease=lambda: unpause())
 pause_b_restart = Button(pause_b, 50, 500, 300, 60, text='Заново',
                          fontSize=40, hoverColour=(78, 163, 39),
                          inactiveColour=(50, 122, 17),
                          pressedColour=(231, 247, 49), radius=20,
                          textColour=(0, 0, 255),
-                         onClick=on_click_button, onRelease= lambda: restart())
+                         onClick=on_click_button, onRelease=lambda: restart())
 pause_b_menu = Button(pause_b, 400, 360, 300, 60, text='В главное меню',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
-                      onClick=on_click_button, onRelease= lambda: running_to_menu())
+                      onClick=on_click_button, onRelease=lambda: running_to_menu())
 pause_b_quit = Button(pause_b, 400, 500, 300, 60, text='Выйти из игры',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
-                      onClick=on_click_button, onRelease= lambda: pygame.quit())
-                      onClick=lambda: pygame.quit())
+                      onClick=on_click_button, onRelease=lambda: pygame.quit())
 game_over_restart = Button(game_over_b, 50, 170, 300, 60, text='Заново',
-                         fontSize=40, hoverColour=(78, 163, 39),
-                         inactiveColour=(50, 122, 17),
-                         pressedColour=(231, 247, 49), radius=20,
-                         textColour=(0, 0, 255),
-                         onClick=lambda: restart())
+                           fontSize=40, hoverColour=(78, 163, 39),
+                           inactiveColour=(50, 122, 17),
+                           pressedColour=(231, 247, 49), radius=20,
+                           textColour=(0, 0, 255),
+                           onClick=lambda: restart())
 game_over_menu = Button(game_over_b, 450, 170, 300, 60, text='В главное меню',
-                      fontSize=40, hoverColour=(78, 163, 39),
-                      inactiveColour=(50, 122, 17),
-                      pressedColour=(231, 247, 49), radius=20,
-                      textColour=(0, 0, 255),
-                      onClick=lambda: running_to_menu())
+                        fontSize=40, hoverColour=(78, 163, 39),
+                        inactiveColour=(50, 122, 17),
+                        pressedColour=(231, 247, 49), radius=20,
+                        textColour=(0, 0, 255),
+                        onClick=lambda: running_to_menu())
 profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease= lambda: pick_p(result[0][1], result[0][2], result[0][0]))
+                   onClick=on_click_button, onRelease=lambda: pick_p(result[0][1], result[0][2], result[0][0]))
 profile_2 = Button(profiles_b, 225, 250, 295, 55, text=f'{result[1][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease= lambda: pick_p(result[1][1], result[1][2], result[1][0]))
+                   onClick=on_click_button, onRelease=lambda: pick_p(result[1][1], result[1][2], result[1][0]))
 profile_3 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[2][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease= lambda: pick_p(result[2][1], result[2][2], result[2][0]))
+                   onClick=on_click_button, onRelease=lambda: pick_p(result[2][1], result[2][2], result[2][0]))
 profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease= lambda: pick_p(result[3][1], result[3][2], result[3][0]))
+                   onClick=on_click_button, onRelease=lambda: pick_p(result[3][1], result[3][2], result[3][0]))
 menu_prof = Button(profiles_b, 210, 700, 335, 55, text='Вернуться в меню',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease= running_to_menu)
+                   onClick=on_click_button, onRelease=running_to_menu)
 running = False
 running_pause = False
 profile = False
@@ -364,7 +363,6 @@ while True:
             screen.blit(game_over_text, (430, 350))
             screen.blit(cursor, (x + 240, y + 300))
         else:
-            player.update()
             obstacle = Obstacle()
             obstacle.rect.x = random.randint(-2360, 3640)
             obstacle.rect.y = random.randint(-2520, 3480)
@@ -379,7 +377,7 @@ while True:
                 if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
                     gems.add(gem)
             camera.update(player)
-            if player.is_game_over: #Обновление счета в дб после конца игры
+            if is_game_over: #Обновление счета в дб после конца игры
                 score = score
                 res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
                 if round(score) > res2[0][0]:
