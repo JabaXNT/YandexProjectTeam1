@@ -55,7 +55,10 @@ def restart():
 
 
 def volume():  # функция для изменения звука(вызывется в главном цикле)
-    pygame.mixer.Sound.set_volume(soundtrack, volume_slider.getValue() / 100)
+    pygame.mixer.Sound.set_volume(soundtrack_menu, volume_slider.getValue() / 100)
+
+def on_click_button():
+    pygame.mixer.Sound.play(sound_click)
 
 
 def pick_profile():
@@ -89,9 +92,19 @@ pygame.init()
 pygame.mixer.init()
 con = sqlite3.connect(os.path.join('src\\profiles.db'))
 cur = con.cursor()
-font = pygame.font.Font(None, 120)
-soundtrack = pygame.mixer.Sound(os.path.join(
+font = pygame.font.Font(None, 130)
+soundtrack_menu = pygame.mixer.Sound(os.path.join(
     'images\\imperial_march.wav'))  # путь до музыки в меню
+soundtrack_in_game = pygame.mixer.Sound(os.path.join(
+    'images\\Sound\\in_game.mp3'))
+sound_explosion_ship = pygame.mixer.Sound(os.path.join(
+    'images\\Sound\\explosion_7.wav'))
+sound_click = pygame.mixer.Sound(os.path.join(
+    'images\\Sound\\click.wav'))
+sound_gem = pygame.mixer.Sound(os.path.join(
+    'images\\Sound\\gem.mp3'))
+sound_mission = pygame.mixer.Sound(os.path.join(
+    'images\\imperial_march.wav'))
 money_image = pygame.image.load(os.path.join(
     'images\\Space\\gems\\money.png'))  # иконка валюты в меню
 volume_image = pygame.image.load(os.path.join(
@@ -99,8 +112,10 @@ volume_image = pygame.image.load(os.path.join(
 volume_image = pygame.transform.scale(volume_image, (75, 75))
 money_image = pygame.transform.scale(money_image, (75, 75))
 moneys = font.render("0", False, (100, 255, 100))
-pygame.mixer.Sound.play(soundtrack)
-pygame.mixer.Sound.set_volume(soundtrack, 0.4)
+pygame.mixer.Sound.play(soundtrack_menu)
+pygame.mixer.Sound.play(soundtrack_in_game)
+pygame.mixer.Sound.set_volume(soundtrack_menu, 0.4)
+pygame.mixer.Sound.set_volume(soundtrack_in_game, 0)
 result = cur.execute("""SELECT * FROM data""").fetchall()
 fps = 60
 obs_count = 0
@@ -121,85 +136,85 @@ menu_b_profiles = Button(screen, 0, 0, 200, 40, text='Профили',
                          inactiveColour=(50, 122, 17),
                          pressedColour=(231, 247, 49),
                          textColour=(0, 0, 255),
-                         onClick=pick_profile)
+                         onClick=on_click_button, onRelease= pick_profile)
 menu_b_start = Button(screen, 440, 200, 400, 70, text='Играть',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
-                      onClick=menu_to_running)
+                      onClick=on_click_button, onRelease= menu_to_running)
 menu_b_hangar = Button(screen, 440, 350, 400, 70, text='Ангар',
                        fontSize=40, hoverColour=(78, 163, 39),
                        inactiveColour=(50, 122, 17),
                        pressedColour=(231, 247, 49), radius=20,
                        textColour=(0, 0, 255),
-                       onClick=lambda: print('Click'))
+                       onClick=on_click_button, onRelease= lambda:print('click'))
 menu_b_top = Button(screen, 440, 500, 400, 70, text='Таблица рекордов',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49), radius=20,
                     textColour=(0, 0, 255),
-                    onClick=lambda: print('Click'))
+                    onClick=on_click_button, onRelease= lambda:print('click'))
 menu_b_quit = Button(screen, 440, 650, 400, 70, text='Выйти из игры',
                      fontSize=40, hoverColour=(78, 163, 39),
                      inactiveColour=(50, 122, 17),
                      pressedColour=(231, 247, 49), radius=20,
                      textColour=(0, 0, 255),
-                     onClick=lambda: pygame.quit())
+                     onClick=on_click_button, onRelease= lambda: pygame.quit())
 pause_b_coninue = Button(pause_b, 50, 360, 300, 60, text='Продолжить',
                          fontSize=40, hoverColour=(78, 163, 39),
                          inactiveColour=(50, 122, 17),
                          pressedColour=(231, 247, 49), radius=20,
                          textColour=(0, 0, 255),
-                         onClick=lambda: unpause())
+                         onClick=on_click_button, onRelease= lambda: unpause())
 pause_b_restart = Button(pause_b, 50, 500, 300, 60, text='Заново',
                          fontSize=40, hoverColour=(78, 163, 39),
                          inactiveColour=(50, 122, 17),
                          pressedColour=(231, 247, 49), radius=20,
                          textColour=(0, 0, 255),
-                         onClick=lambda: restart())
+                         onClick=on_click_button, onRelease= lambda: restart())
 pause_b_menu = Button(pause_b, 400, 360, 300, 60, text='В главное меню',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
-                      onClick=lambda: running_to_menu())
+                      onClick=on_click_button, onRelease= lambda: running_to_menu())
 pause_b_quit = Button(pause_b, 400, 500, 300, 60, text='Выйти из игры',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49), radius=20,
                       textColour=(0, 0, 255),
-                      onClick=lambda: pygame.quit())
+                      onClick=on_click_button, onRelease= lambda: pygame.quit())
 profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=lambda: pick_p(result[0][1], result[0][2], result[0][0]))
+                   onClick=on_click_button, onRelease= lambda: pick_p(result[0][1], result[0][2], result[0][0]))
 profile_2 = Button(profiles_b, 225, 250, 295, 55, text=f'{result[1][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=lambda: pick_p(result[1][1], result[1][2], result[1][0]))
+                   onClick=on_click_button, onRelease= lambda: pick_p(result[1][1], result[1][2], result[1][0]))
 profile_3 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[2][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=lambda: pick_p(result[2][1], result[2][2], result[2][0]))
+                   onClick=on_click_button, onRelease= lambda: pick_p(result[2][1], result[2][2], result[2][0]))
 profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=lambda: pick_p(result[3][1], result[3][2], result[3][0]))
+                   onClick=on_click_button, onRelease= lambda: pick_p(result[3][1], result[3][2], result[3][0]))
 menu_prof = Button(profiles_b, 210, 700, 335, 55, text='Вернуться в меню',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=lambda: running_to_menu())
+                   onClick=on_click_button, onRelease= running_to_menu)
 running = False
 running_pause = False
 profile = False
@@ -228,6 +243,8 @@ while True:
                         player.direction = 0
                     if event.key == pygame.K_RIGHT:
                         player.direction = 0
+        pygame.mixer.Sound.set_volume(soundtrack_menu, 0)
+        pygame.mixer.Sound.set_volume(soundtrack_in_game, 0.1)
         bg_running = pygame.transform.scale(pygame.image.load(os.path.join(
             'images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_running, (0, 0))
@@ -255,6 +272,7 @@ while True:
             if pygame.sprite.collide_mask(player, sprite[1]):  # Взрыв
                 sprite[1].kill()
                 player.is_game_over = True
+                pygame.mixer.Sound.play(sound_explosion_ship)
                 explosion = Explosion()
                 explosion.rect.x = player.rect.x
                 explosion.rect.y = player.rect.y
@@ -270,6 +288,7 @@ while True:
                 sparkle.rect.x = player.rect.x
                 sparkle.rect.y = player.rect.y
                 sparkles.add(sparkle)
+                pygame.mixer.Sound.play(sound_gem)
                 res = cur.execute(f'UPDATE data SET money = {active_value} + 1 WHERE id = {active_profile_id}')
                 con.commit()
                 res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
@@ -325,7 +344,14 @@ while True:
                 if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
                     gems.add(gem)
             camera.update(player)
-            score += 0.1
+            if player.is_game_over: #Обновление счета в дб после конца игры
+                score = score
+                res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
+                if round(score) > res2[0][0]:
+                    res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
+                    con.commit()
+            else:
+                score += 0.1
             score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
         screen.blit(score_text, (5, 20))
         clock.tick(fps)
@@ -343,6 +369,7 @@ while True:
             'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         screen.blit(money_image, (1200, 5))
+        screen.blit(moneys, (1200 - moneys.get_width(), 0))
         screen.blit(volume_image, (0, 885))
         # Отрисовка слайдера, кнопки и вызов функции
         volume_slider.listen(events)
