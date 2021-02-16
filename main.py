@@ -23,6 +23,7 @@ def running_to_menu():
     global menu
     global running
     global profile
+    pygame.mixer.Sound.set_volume(soundtrack_in_game, 0)
     menu = True
     running = False
     profile = False
@@ -114,13 +115,13 @@ volume_image = pygame.image.load(os.path.join(
 volume_image = pygame.transform.scale(volume_image, (75, 75))
 money_image = pygame.transform.scale(money_image, (75, 75))
 moneys = font.render("0", False, (100, 255, 100))
-pygame.mixer.Sound.play(soundtrack_menu)
-pygame.mixer.Sound.play(soundtrack_in_game)
+pygame.mixer.Sound.play(soundtrack_menu, loops=-1, fade_ms=1000)
+pygame.mixer.Sound.play(soundtrack_in_game, loops=-1, fade_ms=1000)
 pygame.mixer.Sound.set_volume(soundtrack_menu, 0.4)
 pygame.mixer.Sound.set_volume(soundtrack_in_game, 0)
 result = cur.execute("""SELECT * FROM data""").fetchall()
 fps = 60
-game_over_text = pygame.font.Font(None, 70).render('ИГРА ОКНЧЕНА', True, (0, 0, 255))
+game_over_text = pygame.font.Font(None, 70).render('ИГРА ОКОНЧЕНА', True, (0, 0, 255))
 obs_count = 0
 nifo = 0
 active_profile_id = 1
@@ -357,6 +358,11 @@ while True:
             game_over_restart.listen(events)
             game_over_restart.draw()
             x, y = pygame.mouse.get_pos()
+            score = score
+            res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
+            if round(score) > res2[0][0]:
+                res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
+                con.commit()
             pygame.draw.rect(game_over_b, (0, 0, 255), (0, 0, 800, 300), 15)
             pygame.draw.rect(game_over_b, (0, 0, 255), (53, 173, 295, 55), 7)
             pygame.draw.rect(game_over_b, (0, 0, 255), (453, 173, 295, 55), 7)
@@ -377,14 +383,6 @@ while True:
                 if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
                     gems.add(gem)
             camera.update(player)
-            if is_game_over: #Обновление счета в дб после конца игры
-                score = score
-                res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
-                if round(score) > res2[0][0]:
-                    res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
-                    con.commit()
-            else:
-                score += 0.1
             score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
             if col == 9999999999:
                 player.update()
