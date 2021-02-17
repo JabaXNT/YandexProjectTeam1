@@ -23,9 +23,11 @@ def running_to_menu():
     global menu
     global running
     global profile
+    global high_score
     pygame.mixer.Sound.set_volume(soundtrack_in_game, 0)
     menu = True
     running = False
+    high_score = False
     profile = False
 
 
@@ -60,25 +62,36 @@ def restart():
 def volume():  # функция для изменения звука(вызывется в главном цикле)
     pygame.mixer.Sound.set_volume(soundtrack_menu, volume_slider.getValue() / 100)
 
+def in_game_volume():
+    pygame.mixer.Sound.set_volume(soundtrack_in_game, in_game_volume_slider.getValue() / 100)
+
 def on_click_button():
     pygame.mixer.Sound.play(sound_click)
 
 
-def pick_profile():
+def pick_profile_win():
     global profile
     global menu
     profile = True
     menu = False
 
+def high_score_win():
+    global high_score
+    global menu
+    high_score = True
+    menu = False
+
 
 def pick_p(name, value, id):
     global profile
+    global high_score
     global menu
     global menu_b_profiles
     global moneys
     global active_profile_id
     global active_value
     profile = False
+    high_score = False
     menu = True
     active_profile_id = id
     active_value = value
@@ -87,7 +100,7 @@ def pick_p(name, value, id):
                              inactiveColour=(50, 122, 17),
                              pressedColour=(231, 247, 49),
                              textColour=(0, 0, 255),
-                             onClick=pick_profile)
+                             onClick=pick_profile_win)
     moneys = font.render(f'{value}', False, (100, 255, 100))
 
 
@@ -134,15 +147,18 @@ pause_b = pygame.Surface((750, 600))
 pause = pygame.Surface((750, 600))
 profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
+high_scores = pygame.Surface((750, 800))
+high_scores_b = pygame.Surface((750, 800))
 pygame.mouse.set_visible(False)
 # слайдер, можно дизайн переделать
 volume_slider = Slider(screen, 100, 920, 200, 20, min=0, max=100, step=10)
+in_game_volume_slider = Slider(pause_b, 100, 300, 550, 20, min=0, max=100, step=5, initial = 10)
 menu_b_profiles = Button(screen, 0, 0, 200, 40, text='Профили',
                          fontSize=40, hoverColour=(78, 163, 39),
                          inactiveColour=(50, 122, 17),
                          pressedColour=(231, 247, 49),
                          textColour=(0, 0, 255),
-                         onClick=on_click_button, onRelease=pick_profile)
+                         onClick=on_click_button, onRelease=pick_profile_win)
 menu_b_start = Button(screen, 440, 200, 400, 70, text='Играть',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
@@ -160,7 +176,7 @@ menu_b_top = Button(screen, 440, 500, 400, 70, text='Таблица рекорд
                     inactiveColour=(50, 122, 17),
                     pressedColour=(231, 247, 49), radius=20,
                     textColour=(0, 0, 255),
-                    onClick=on_click_button, onRelease=lambda: print('click'))
+                    onClick=on_click_button, onRelease=high_score_win)
 menu_b_quit = Button(screen, 440, 650, 400, 70, text='Выйти из игры',
                      fontSize=40, hoverColour=(78, 163, 39),
                      inactiveColour=(50, 122, 17),
@@ -233,9 +249,16 @@ menu_prof = Button(profiles_b, 210, 700, 335, 55, text='Вернуться в м
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=running_to_menu)
+menu_high_score = Button(high_scores_b, 210, 700, 335, 55, text='Вернуться в меню',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=running_to_menu)
 running = False
 running_pause = False
 profile = False
+high_score = False
 menu = True
 cursor = pygame.image.load(os.path.join('images\\arrow.png')).convert_alpha()
 while True:
@@ -262,7 +285,7 @@ while True:
                     if event.key == pygame.K_RIGHT:
                         player.direction = 0
         pygame.mixer.Sound.set_volume(soundtrack_menu, 0)
-        pygame.mixer.Sound.set_volume(soundtrack_in_game, 0.1)
+        in_game_volume()
         bg_running = pygame.transform.scale(pygame.image.load(os.path.join(
             'images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_running, (0, 0))
@@ -340,6 +363,10 @@ while True:
             pause_b_menu.draw()
             pause_b_quit.listen(events)
             pause_b_quit.draw()
+            in_game_volume_slider.listen(events) # Примерное расположение слайдера, не знаю куда его поместить поэтому пусть пока там висит
+            in_game_volume_slider.draw()
+            volume_text = pygame.font.Font(None, 60).render('Громкость звука', True, (255, 255, 255))
+            pause_b.blit(volume_text, (225, 250))
             x, y = pygame.mouse.get_pos()
             pygame.draw.rect(pause_b, (0, 0, 255), (0, 0, 750, 600), 15)
             pygame.draw.rect(pause_b, (0, 0, 255), (403, 503, 295, 55), 7)
@@ -478,5 +505,35 @@ while True:
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 400, 295, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 550, 295, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (210, 700, 335, 55), 7)
+        screen.blit(cursor, (x + 240, y + 100))
+        pygame.display.update()
+    while high_score: # Окно с результатами(в процессе)
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                high_score = False
+                con.close()
+                quit()
+        x, y = pygame.mouse.get_pos()
+        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
+            'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
+        screen.blit(bg_menu, (0, 0))
+        high_scores.fill((0, 80, 199))
+        high_scores.set_alpha(75)
+        screen.blit(high_scores, (240, 100))
+        high_scores_b.set_colorkey('BLACK')
+        screen.blit(high_scores_b, (240, 100))
+        menu_high_score.listen(events)
+        menu_high_score.draw()
+        pygame.draw.rect(high_scores_b, (0, 0, 255), (0, 0, 750, 800), 15)
+        pygame.draw.rect(high_scores_b, (0, 0, 255), (75, 100, 600, 500), 15)
+        high_scores_b.fill(pygame.Color(217, 215, 0), pygame.Rect(75, 100, 600, 125))
+        high_scores_b.fill(pygame.Color(192, 192, 192), pygame.Rect(75, 225, 600, 125))
+        high_scores_b.fill(pygame.Color(205, 127, 50), pygame.Rect(75, 350, 600, 125))
+        high_scores_b.fill(pygame.Color(0, 0, 200), pygame.Rect(75, 475, 600, 125))
+        score_text = pygame.font.Font(None, 80).render(result[0][1] + ':' + '               ' + str(result[0][3]), True, (255, 255, 255))
+        screen.blit(score_text, (355, 235))
+        pygame.draw.rect(high_scores_b, (0, 0, 255), (210, 700, 335, 55), 7)
         screen.blit(cursor, (x + 240, y + 100))
         pygame.display.update()
