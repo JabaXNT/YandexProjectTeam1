@@ -48,6 +48,7 @@ def restart():
     global is_game_over
     global col
     score = 0
+    money_count = 0
     sparkles = pygame.sprite.Group()
     explosions = pygame.sprite.Group()
     player = Player()
@@ -138,6 +139,7 @@ game_over_text = pygame.font.Font(None, 70).render('ИГРА ОКОНЧЕНА', 
 obs_count = 0
 nifo = 0
 active_profile_id = 1
+money_count = 0
 active_value = result[0][2]
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((1280, 960))
@@ -331,11 +333,7 @@ while True:
                 sparkle.rect.y = player.rect.y
                 sparkles.add(sparkle)
                 pygame.mixer.Sound.play(sound_gem)
-                res = cur.execute(f'UPDATE data SET money = {active_value} + 1 WHERE id = {active_profile_id}')
-                con.commit()
-                res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
-                result = cur.execute("""SELECT * FROM data""").fetchall()
-                moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
+                money_count += 1
             screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
             sprite.update()
         for sprite in explosions:
@@ -365,7 +363,7 @@ while True:
             pause_b_quit.draw()
             in_game_volume_slider.listen(events) # Примерное расположение слайдера, не знаю куда его поместить поэтому пусть пока там висит
             in_game_volume_slider.draw()
-            volume_text = pygame.font.Font(None, 60).render('Громкость звука', True, (255, 255, 255))
+            volume_text = pygame.font.Font(None, 60).render('ГРОМКОСТЬ ЗВУКА', True, (255, 255, 255))
             pause_b.blit(volume_text, (225, 250))
             x, y = pygame.mouse.get_pos()
             pygame.draw.rect(pause_b, (0, 0, 255), (0, 0, 750, 600), 15)
@@ -390,6 +388,13 @@ while True:
             if round(score) > res2[0][0]:
                 res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
                 con.commit()
+            print(money_count)
+            res = cur.execute(f'UPDATE data SET money = {active_value} + {money_count} WHERE id = {active_profile_id}')
+            con.commit()
+            res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
+            print(res2)
+            moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
+            result = cur.execute("""SELECT * FROM data""").fetchall()
             pygame.draw.rect(game_over_b, (0, 0, 255), (0, 0, 800, 300), 15)
             pygame.draw.rect(game_over_b, (0, 0, 255), (53, 173, 295, 55), 7)
             pygame.draw.rect(game_over_b, (0, 0, 255), (453, 173, 295, 55), 7)
@@ -433,7 +438,9 @@ while True:
         if pygame.time.get_ticks() - 700 > col:
             is_game_over = True
         score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
+        gem_count_text = pygame.font.Font(None, 130).render(f'{money_count}', True, (100, 255, 100))
         screen.blit(score_text, (5, 20))
+        screen.blit(gem_count_text, (1200 - gem_count_text.get_width(), 5))
         clock.tick(fps)
         pygame.display.update()
     while menu:
@@ -515,6 +522,8 @@ while True:
                 high_score = False
                 con.close()
                 quit()
+        res2 = cur.execute(f'SELECT high_score, name FROM data').fetchall()
+        res2.sort()
         x, y = pygame.mouse.get_pos()
         bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
             'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
@@ -532,8 +541,22 @@ while True:
         high_scores_b.fill(pygame.Color(192, 192, 192), pygame.Rect(75, 225, 600, 125))
         high_scores_b.fill(pygame.Color(205, 127, 50), pygame.Rect(75, 350, 600, 125))
         high_scores_b.fill(pygame.Color(0, 0, 200), pygame.Rect(75, 475, 600, 125))
-        score_text = pygame.font.Font(None, 80).render(result[0][1] + ':' + '               ' + str(result[0][3]), True, (255, 255, 255))
-        screen.blit(score_text, (355, 235))
+        score_text_1 = pygame.font.Font(None, 80).render(res2[3][1] + ':', True, (255, 255, 255))
+        score_text_2 = pygame.font.Font(None, 80).render(res2[2][1] + ':', True, (255, 255, 255))
+        score_text_3 = pygame.font.Font(None, 80).render(res2[1][1] + ':', True, (255, 255, 255))
+        score_text_4 = pygame.font.Font(None, 80).render(res2[0][1] + ':', True, (255, 255, 255))
+        score_numb_1 = pygame.font.Font(None, 80).render(str(res2[3][0]), True, (255, 255, 255))
+        score_numb_2 = pygame.font.Font(None, 80).render(str(res2[2][0]), True, (255, 255, 255))
+        score_numb_3 = pygame.font.Font(None, 80).render(str(res2[1][0]), True, (255, 255, 255))
+        score_numb_4 = pygame.font.Font(None, 80).render(str(res2[0][0]), True, (255, 255, 255))
+        screen.blit(score_text_1, (355, 235))
+        screen.blit(score_text_2, (355, 355))
+        screen.blit(score_text_3, (355, 485))
+        screen.blit(score_text_4, (355, 615))
+        screen.blit(score_numb_1, (725, 235))
+        screen.blit(score_numb_2, (725, 355))
+        screen.blit(score_numb_3, (725, 485))
+        screen.blit(score_numb_4, (725, 615))
         pygame.draw.rect(high_scores_b, (0, 0, 255), (210, 700, 335, 55), 7)
         screen.blit(cursor, (x + 240, y + 100))
         pygame.display.update()
