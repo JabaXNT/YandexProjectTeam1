@@ -24,11 +24,13 @@ def running_to_menu():
     global running
     global profile
     global high_score
+    global hangar
     pygame.mixer.Sound.set_volume(soundtrack_in_game, 0)
     menu = True
     running = False
     high_score = False
     profile = False
+    hangar = False
 
 
 def unpause():
@@ -48,7 +50,6 @@ def restart():
     global is_game_over
     global col
     score = 0
-    money_count = 0
     sparkles = pygame.sprite.Group()
     explosions = pygame.sprite.Group()
     player = Player()
@@ -82,6 +83,11 @@ def high_score_win():
     high_score = True
     menu = False
 
+def hangar_win():
+    global menu
+    global hangar
+    hangar = True
+    menu = False
 
 def pick_p(name, value, id):
     global profile
@@ -151,6 +157,8 @@ profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
 high_scores = pygame.Surface((750, 800))
 high_scores_b = pygame.Surface((750, 800))
+hangars = pygame.Surface((1080, 800))
+hangars_b = pygame.Surface((1080, 800))
 pygame.mouse.set_visible(False)
 # слайдер, можно дизайн переделать
 volume_slider = Slider(screen, 100, 920, 200, 20, min=0, max=100, step=10)
@@ -172,7 +180,7 @@ menu_b_hangar = Button(screen, 440, 350, 400, 70, text='Ангар',
                        inactiveColour=(50, 122, 17),
                        pressedColour=(231, 247, 49), radius=20,
                        textColour=(0, 0, 255),
-                       onClick=on_click_button, onRelease=lambda: print('click'))
+                       onClick=on_click_button, onRelease=hangar_win)
 menu_b_top = Button(screen, 440, 500, 400, 70, text='Таблица рекордов',
                     fontSize=40, hoverColour=(78, 163, 39),
                     inactiveColour=(50, 122, 17),
@@ -257,10 +265,17 @@ menu_high_score = Button(high_scores_b, 210, 700, 335, 55, text='Вернуть�
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=running_to_menu)
+menu_hangar = Button(hangars_b, 50, 700, 335, 55, text='Вернуться в меню',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=running_to_menu)
 running = False
 running_pause = False
 profile = False
 high_score = False
+hangar = False
 menu = True
 cursor = pygame.image.load(os.path.join('images\\arrow.png')).convert_alpha()
 while True:
@@ -388,7 +403,6 @@ while True:
             if round(score) > res2[0][0]:
                 res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
                 con.commit()
-            print(money_count)
             res = cur.execute(f'UPDATE data SET money = {active_value} + {money_count} WHERE id = {active_profile_id}')
             con.commit()
             res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
@@ -559,4 +573,29 @@ while True:
         screen.blit(score_numb_4, (725, 615))
         pygame.draw.rect(high_scores_b, (0, 0, 255), (210, 700, 335, 55), 7)
         screen.blit(cursor, (x + 240, y + 100))
+        pygame.display.update()
+    while hangar:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                hangar = False
+                con.close()
+                quit()
+        x, y = pygame.mouse.get_pos()
+        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
+            'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
+        screen.blit(bg_menu, (0, 0))
+        hangars.fill((0, 80, 199))
+        hangars.set_alpha(75)
+        screen.blit(hangars, (100, 100))
+        hangars_b.set_colorkey('BLACK')
+        screen.blit(hangars_b, (100, 100))
+        menu_hangar.listen(events)
+        menu_hangar.draw()
+        pygame.draw.rect(hangars_b, (0, 0, 255), (0, 0, 1080, 800), 15)
+        pygame.draw.rect(hangars_b, (0, 0, 255), (50, 700, 335, 55), 5)
+        screen.blit(money_image, (1200, 5))
+        screen.blit(moneys, (1200 - moneys.get_width(), 0))
+        screen.blit(cursor, (x + 100, y + 100))
         pygame.display.update()
