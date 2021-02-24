@@ -17,6 +17,7 @@ def menu_to_running():
     menu = False
     running = True
     restart()
+    print(player.ship)
 
 
 def running_to_menu():
@@ -39,7 +40,6 @@ def unpause():
 
 
 def restart():
-    global player
     global obstacles
     global running_pause
     global camera
@@ -54,7 +54,6 @@ def restart():
     money_count = 0 #????
     sparkles = pygame.sprite.Group()
     explosions = pygame.sprite.Group()
-    player = Player()
     camera = Camera()
     obstacles = pygame.sprite.Group()
     gems = pygame.sprite.Group()
@@ -73,7 +72,9 @@ def on_click_button():
     pygame.mixer.Sound.play(sound_click)
 
 def buy_ship(cost, name):
-    print('Click')
+    global res2
+    res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
+    player.ship = pygame.image.load(os.path.join(f'images\\Ships\\{name}')).convert_alpha()
 
 def pick_profile_win():
     global profile
@@ -137,18 +138,18 @@ money_image = pygame.image.load(os.path.join(
 volume_image = pygame.image.load(os.path.join(
     'images\\volume_icon.png'))  # иконка звука в меню
 volume_image = pygame.transform.scale(volume_image, (75, 75))
-ship_1 = pygame.image.load(os.path.join('images\\Ships\\ship1.png'))
-ship_1 = pygame.transform.scale(ship_1, (164, 251))
+ship_1 = pygame.image.load(os.path.join('images\\Ships\\default.png'))
+ship_1 = pygame.transform.scale(ship_1, (134, 236))
 ship_2 = pygame.image.load(os.path.join('images\\Ships\\ship2.png'))
-ship_2 = pygame.transform.scale(ship_2, (164, 251))
+ship_2 = pygame.transform.scale(ship_2, (134, 236))
 ship_3 = pygame.image.load(os.path.join('images\\Ships\\ship3.png'))
-ship_3 = pygame.transform.scale(ship_3, (164, 251))
+ship_3 = pygame.transform.scale(ship_3, (134, 236))
 ship_4 = pygame.image.load(os.path.join('images\\Ships\\ship4.png'))
-ship_4 = pygame.transform.scale(ship_4, (164, 251))
+ship_4 = pygame.transform.scale(ship_4, (134, 236))
 ship_5 = pygame.image.load(os.path.join('images\\Ships\\ship5.png'))
-ship_5 = pygame.transform.scale(ship_5, (164, 251))
+ship_5 = pygame.transform.scale(ship_5, (134, 236))
 ship_6 = pygame.image.load(os.path.join('images\\Ships\\ship6.png'))
-ship_6 = pygame.transform.scale(ship_6, (164, 251))
+ship_6 = pygame.transform.scale(ship_6, (134, 236))
 money_image = pygame.transform.scale(money_image, (75, 75))
 moneys = font.render("0", False, (100, 255, 100))
 pygame.mixer.Sound.play(soundtrack_menu, loops=-1, fade_ms=1000)
@@ -287,11 +288,11 @@ menu_hangar = Button(hangars_b, 50, 700, 335, 55, text='Вернуться в м
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=running_to_menu)
-hangar_ship_1 = Button(hangars_b, 50, 50, 250, 250, text='',
+hangar_ship_default = Button(hangars_b, 50, 50, 250, 250, text='',
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(30, 'ship1.png'))
+                   onClick=on_click_button, onRelease=lambda: buy_ship(0, 'default.png'))
 hangar_ship_2 = Button(hangars_b, 420, 50, 250, 250, text='',
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
@@ -317,11 +318,7 @@ hangar_ship_6 = Button(hangars_b, 780, 370, 250, 250, text='',
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=lambda: buy_ship(300, 'ship6.png'))
-hangar_ship_default = Button(hangars_b, 650, 300, 250, 250, text='',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=running_to_menu)
+player = Player()
 running = False
 running_pause = False
 profile = False
@@ -642,10 +639,32 @@ while True:
         screen.blit(hangars, (100, 100))
         hangars_b.set_colorkey('BLACK')
         screen.blit(hangars_b, (100, 100))
+        res2 = cur.execute(f'SELECT ships FROM data WHERE id = {active_profile_id}').fetchall()
+        ships = res2[0][0].split(' ')
+        if ships[1] == '1':
+            ship_text_2 = pygame.font.Font(None, 40).render('Куплено', True, (255, 255, 255))
+        else:
+            ship_text_2 = pygame.font.Font(None, 40).render('Цена: 50', True, (255, 255, 255))
+        if ships[2] == '1':
+            ship_text_3 = pygame.font.Font(None, 40).render('Куплено', True, (255, 255, 255))
+        else:
+            ship_text_3 = pygame.font.Font(None, 40).render('Цена: 70', True, (255, 255, 255))
+        if ships[3] == '1':
+            ship_text_4 = pygame.font.Font(None, 40).render('Куплено', True, (255, 255, 255))
+        else:
+            ship_text_4 = pygame.font.Font(None, 40).render('Цена: 100', True, (255, 255, 255))
+        if ships[4] == '1':
+            ship_text_5 = pygame.font.Font(None, 40).render('Куплено', True, (255, 255, 255))
+        else:
+            ship_text_5 = pygame.font.Font(None, 40).render('Цена: 150', True, (255, 255, 255))
+        if ships[5] == '1':
+            ship_text_6 = pygame.font.Font(None, 40).render('Куплено', True, (255, 255, 255))
+        else:
+            ship_text_6 = pygame.font.Font(None, 40).render('Цена: 300', True, (255, 255, 255))
         menu_hangar.listen(events)
         menu_hangar.draw()
-        hangar_ship_1.listen(events)
-        hangar_ship_1.draw()
+        hangar_ship_default.listen(events)
+        hangar_ship_default.draw()
         hangar_ship_2.listen(events)
         hangar_ship_2.draw()
         hangar_ship_3.listen(events)
@@ -658,24 +677,19 @@ while True:
         hangar_ship_6.draw()
         pygame.draw.rect(hangars_b, (0, 0, 255), (0, 0, 1080, 800), 15)
         pygame.draw.rect(hangars_b, (0, 0, 255), (50, 700, 335, 55), 5)
-        ship_text_1 = pygame.font.Font(None, 40).render('Цена: 30', True, (255, 255, 255))
-        ship_text_2 = pygame.font.Font(None, 40).render('Цена: 50', True, (255, 255, 255))
-        ship_text_3 = pygame.font.Font(None, 40).render('Цена: 70', True, (255, 255, 255))
-        ship_text_4 = pygame.font.Font(None, 40).render('Цена: 100', True, (255, 255, 255))
-        ship_text_5 = pygame.font.Font(None, 40).render('Цена: 150', True, (255, 255, 255))
-        ship_text_6 = pygame.font.Font(None, 40).render('Цена: 300', True, (255, 255, 255))
+        ship_text_1 = pygame.font.Font(None, 40).render('Куплено', True, (255, 255, 255))
         screen.blit(ship_text_1, (220, 410))
         screen.blit(ship_text_2, (590, 410))
         screen.blit(ship_text_3, (950, 410))
         screen.blit(ship_text_4, (220, 730))
         screen.blit(ship_text_5, (590, 730))
         screen.blit(ship_text_6, (950, 730))
-        screen.blit(ship_1, (195, 150))
-        screen.blit(ship_2, (565, 150))
-        screen.blit(ship_3, (930, 150))
-        screen.blit(ship_4, (195, 470))
-        screen.blit(ship_5, (565, 470))
-        screen.blit(ship_6, (930, 470))
+        screen.blit(ship_1, (210, 150))
+        screen.blit(ship_2, (580, 150))
+        screen.blit(ship_3, (945, 150))
+        screen.blit(ship_4, (210, 470))
+        screen.blit(ship_5, (580, 470))
+        screen.blit(ship_6, (945, 485))
         pygame.draw.rect(screen, (0, 0, 255), (150, 150, 250, 250), 6)
         pygame.draw.rect(screen, (0, 0, 255), (520, 150, 250, 250), 6)
         pygame.draw.rect(screen, (0, 0, 255), (880, 150, 250, 250), 6)
