@@ -47,9 +47,11 @@ def restart():
     global sparkles
     global explosions
     global score
+    global money_count
     global is_game_over
     global col
     score = 0
+    money_count = 0 #????
     sparkles = pygame.sprite.Group()
     explosions = pygame.sprite.Group()
     player = Player()
@@ -70,6 +72,8 @@ def in_game_volume():
 def on_click_button():
     pygame.mixer.Sound.play(sound_click)
 
+def buy_ship(cost, name):
+    print('Click')
 
 def pick_profile_win():
     global profile
@@ -133,6 +137,18 @@ money_image = pygame.image.load(os.path.join(
 volume_image = pygame.image.load(os.path.join(
     'images\\volume_icon.png'))  # иконка звука в меню
 volume_image = pygame.transform.scale(volume_image, (75, 75))
+ship_1 = pygame.image.load(os.path.join('images\\Ships\\ship1.png'))
+ship_1 = pygame.transform.scale(ship_1, (164, 251))
+ship_2 = pygame.image.load(os.path.join('images\\Ships\\ship2.png'))
+ship_2 = pygame.transform.scale(ship_2, (164, 251))
+ship_3 = pygame.image.load(os.path.join('images\\Ships\\ship3.png'))
+ship_3 = pygame.transform.scale(ship_3, (164, 251))
+ship_4 = pygame.image.load(os.path.join('images\\Ships\\ship4.png'))
+ship_4 = pygame.transform.scale(ship_4, (164, 251))
+ship_5 = pygame.image.load(os.path.join('images\\Ships\\ship5.png'))
+ship_5 = pygame.transform.scale(ship_5, (164, 251))
+ship_6 = pygame.image.load(os.path.join('images\\Ships\\ship6.png'))
+ship_6 = pygame.transform.scale(ship_6, (164, 251))
 money_image = pygame.transform.scale(money_image, (75, 75))
 moneys = font.render("0", False, (100, 255, 100))
 pygame.mixer.Sound.play(soundtrack_menu, loops=-1, fade_ms=1000)
@@ -268,6 +284,41 @@ menu_high_score = Button(high_scores_b, 210, 700, 335, 55, text='Вернуть�
 menu_hangar = Button(hangars_b, 50, 700, 335, 55, text='Вернуться в меню',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=running_to_menu)
+hangar_ship_1 = Button(hangars_b, 50, 50, 250, 250, text='',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: buy_ship(30, 'ship1.png'))
+hangar_ship_2 = Button(hangars_b, 420, 50, 250, 250, text='',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: buy_ship(50, 'ship2.png'))
+hangar_ship_3 = Button(hangars_b, 780, 50, 250, 250, text='',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: buy_ship(70, 'ship3.png'))
+hangar_ship_4 = Button(hangars_b, 50, 370, 250, 250, text='',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: buy_ship(100, 'ship4.png'))
+hangar_ship_5 = Button(hangars_b, 420, 370, 250, 250, text='',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: buy_ship(150, 'ship5.png'))
+hangar_ship_6 = Button(hangars_b, 780, 370, 250, 250, text='',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: buy_ship(300, 'ship6.png'))
+hangar_ship_default = Button(hangars_b, 650, 300, 250, 250, text='',
+                   fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=running_to_menu)
@@ -416,16 +467,16 @@ while True:
             screen.blit(cursor, (x + 240, y + 300))
         else:
             obstacle = Obstacle()
-            obstacle.rect.x = random.randint(-2360, 3640)
-            obstacle.rect.y = random.randint(-2520, 3480)
+            obstacle.rect.x = random.randint(-1530, 1820)
+            obstacle.rect.y = random.randint(-1780, 1780)
             if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
                 obstacles.add(obstacle)
-            if obs_count < 60:
+            if obs_count < 40:
                 obs_count += 1
-            if random.randint(1, 50) == 1:
+            if random.randint(1, 30) == 1:
                 gem = Gem()
-                gem.rect.x = random.randint(-2360, 3640)
-                gem.rect.y = random.randint(-2520, 3480)
+                gem.rect.x = random.randint(-2360, 2640)
+                gem.rect.y = random.randint(-2520, 2480)
                 if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
                     gems.add(gem)
             camera.update(player)
@@ -436,16 +487,16 @@ while True:
             else:
                 player.image = pygame.image.load(os.path.join('images\\Space\\explosion\\8.png')).convert_alpha()
         obstacle = Obstacle()
-        obstacle.rect.x = random.randint(-2360, 3640)
-        obstacle.rect.y = random.randint(-2520, 3480)
+        obstacle.rect.x = random.randint(-2360, 1820)
+        obstacle.rect.y = random.randint(-2520, 1780)
         if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
             obstacles.add(obstacle)
-        if obs_count < 60:
+        if obs_count < 40:
             obs_count += 1
-        if random.randint(1, 50) == 1:
+        if random.randint(1, 30) == 1:
             gem = Gem()
-            gem.rect.x = random.randint(-2360, 3640)
-            gem.rect.y = random.randint(-2520, 3480)
+            gem.rect.x = random.randint(-2360, 2640)
+            gem.rect.y = random.randint(-2520, 2480)
             if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
                 gems.add(gem)
         camera.update(player)
@@ -593,8 +644,44 @@ while True:
         screen.blit(hangars_b, (100, 100))
         menu_hangar.listen(events)
         menu_hangar.draw()
+        hangar_ship_1.listen(events)
+        hangar_ship_1.draw()
+        hangar_ship_2.listen(events)
+        hangar_ship_2.draw()
+        hangar_ship_3.listen(events)
+        hangar_ship_3.draw()
+        hangar_ship_4.listen(events)
+        hangar_ship_4.draw()
+        hangar_ship_5.listen(events)
+        hangar_ship_5.draw()
+        hangar_ship_6.listen(events)
+        hangar_ship_6.draw()
         pygame.draw.rect(hangars_b, (0, 0, 255), (0, 0, 1080, 800), 15)
         pygame.draw.rect(hangars_b, (0, 0, 255), (50, 700, 335, 55), 5)
+        ship_text_1 = pygame.font.Font(None, 40).render('Цена: 30', True, (255, 255, 255))
+        ship_text_2 = pygame.font.Font(None, 40).render('Цена: 50', True, (255, 255, 255))
+        ship_text_3 = pygame.font.Font(None, 40).render('Цена: 70', True, (255, 255, 255))
+        ship_text_4 = pygame.font.Font(None, 40).render('Цена: 100', True, (255, 255, 255))
+        ship_text_5 = pygame.font.Font(None, 40).render('Цена: 150', True, (255, 255, 255))
+        ship_text_6 = pygame.font.Font(None, 40).render('Цена: 300', True, (255, 255, 255))
+        screen.blit(ship_text_1, (220, 410))
+        screen.blit(ship_text_2, (590, 410))
+        screen.blit(ship_text_3, (950, 410))
+        screen.blit(ship_text_4, (220, 730))
+        screen.blit(ship_text_5, (590, 730))
+        screen.blit(ship_text_6, (950, 730))
+        screen.blit(ship_1, (195, 150))
+        screen.blit(ship_2, (565, 150))
+        screen.blit(ship_3, (930, 150))
+        screen.blit(ship_4, (195, 470))
+        screen.blit(ship_5, (565, 470))
+        screen.blit(ship_6, (930, 470))
+        pygame.draw.rect(screen, (0, 0, 255), (150, 150, 250, 250), 6)
+        pygame.draw.rect(screen, (0, 0, 255), (520, 150, 250, 250), 6)
+        pygame.draw.rect(screen, (0, 0, 255), (880, 150, 250, 250), 6)
+        pygame.draw.rect(screen, (0, 0, 255), (150, 470, 250, 250), 6)
+        pygame.draw.rect(screen, (0, 0, 255), (520, 470, 250, 250), 6)
+        pygame.draw.rect(screen, (0, 0, 255), (880, 470, 250, 250), 6)
         screen.blit(money_image, (1200, 5))
         screen.blit(moneys, (1200 - moneys.get_width(), 0))
         screen.blit(cursor, (x + 100, y + 100))
