@@ -2,7 +2,7 @@ import random
 import pygame
 import os
 import sqlite3
-from pygame_widgets import Button, Slider
+from pygame_widgets import Button, Slider, TextBox
 from src.player import Player
 from src.camera import Camera
 from src.obstacle import Obstacle
@@ -33,6 +33,12 @@ def running_to_menu():
     profile = False
     hangar = False
 
+def running_to_profiles():
+    global profile
+    global profile_change_name
+    profile = True
+    profile_change_name = False
+
 
 def unpause():
     global running_pause
@@ -51,7 +57,7 @@ def restart():
     global is_game_over
     global col
     score = 0
-    money_count = 0 #????
+    money_count = 0 
     sparkles = pygame.sprite.Group()
     explosions = pygame.sprite.Group()
     camera = Camera()
@@ -76,11 +82,61 @@ def buy_ship(cost, name):
     res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
     player.ship = pygame.image.load(os.path.join(f'images\\Ships\\{name}')).convert_alpha()
 
+def set_text():
+    global result
+    global profile_1
+    global profile_2
+    global profile_3
+    global profile_4
+    global menu_b_profiles
+    global change_name_text
+    kekw = prof_change_name.getText()
+    res = cur.execute(f'UPDATE data SET name = ? WHERE id = ?', (kekw, active_profile_id))
+    con.commit()
+    result = cur.execute("""SELECT * FROM data""").fetchall()
+    change_name_text = pygame.font.Font(None, 40).render('Сохранено', True, (255, 255, 255))
+    profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: pick_p(result[0][1], result[0][2], result[0][0]))
+    profile_2 = Button(profiles_b, 225, 250, 295, 55, text=f'{result[1][1]}',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: pick_p(result[1][1], result[1][2], result[1][0]))
+    profile_3 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[2][1]}',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: pick_p(result[2][1], result[2][2], result[2][0]))
+    profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=lambda: pick_p(result[3][1], result[3][2], result[3][0]))
+    menu_b_profiles = Button(screen, 0, 0, 200, 40, text=kekw,
+                             fontSize=40, hoverColour=(78, 163, 39),
+                             inactiveColour=(50, 122, 17),
+                             pressedColour=(231, 247, 49),
+                             textColour=(0, 0, 255),
+                             onClick=pick_profile_win)
+
 def pick_profile_win():
     global profile
     global menu
     profile = True
     menu = False
+
+def change_name():
+    global profile_change_name
+    global profile
+    profile = False
+    profile_change_name = True
 
 def high_score_win():
     global high_score
@@ -98,6 +154,7 @@ def pick_p(name, value, id):
     global profile
     global high_score
     global menu
+    global active_name
     global menu_b_profiles
     global moneys
     global active_profile_id
@@ -106,6 +163,7 @@ def pick_p(name, value, id):
     high_score = False
     menu = True
     active_profile_id = id
+    active_name = name
     active_value = value
     menu_b_profiles = Button(screen, 0, 0, 200, 40, text=name,
                              fontSize=40, hoverColour=(78, 163, 39),
@@ -157,8 +215,10 @@ pygame.mixer.Sound.play(soundtrack_in_game, loops=-1, fade_ms=1000)
 pygame.mixer.Sound.set_volume(soundtrack_menu, 0.4)
 pygame.mixer.Sound.set_volume(soundtrack_in_game, 0)
 result = cur.execute("""SELECT * FROM data""").fetchall()
+active_name = None
 fps = 60
 game_over_text = pygame.font.Font(None, 70).render('ИГРА ОКОНЧЕНА', True, (0, 0, 255))
+change_name_text = pygame.font.Font(None, 40).render('Для сохранения нажмите Enter', True, (255, 255, 255))
 obs_count = 0
 nifo = 0
 active_profile_id = 1
@@ -172,6 +232,7 @@ pause_b = pygame.Surface((750, 600))
 pause = pygame.Surface((750, 600))
 profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
+profiles_change_name_b = pygame.Surface((750, 800))
 high_scores = pygame.Surface((750, 800))
 high_scores_b = pygame.Surface((750, 800))
 hangars = pygame.Surface((1080, 800))
@@ -180,6 +241,9 @@ pygame.mouse.set_visible(False)
 # слайдер, можно дизайн переделать
 volume_slider = Slider(screen, 100, 920, 200, 20, min=0, max=100, step=10)
 in_game_volume_slider = Slider(pause_b, 100, 300, 550, 20, min=0, max=100, step=5, initial = 10)
+prof_change_name = TextBox(profiles_change_name_b, 0, 0, 600, 80, fontSize=50,
+                  borderColour=(255, 0, 0), textColour=(0, 200, 0),
+                  onSubmit=set_text, radius=10, borderThickness=3)
 menu_b_profiles = Button(screen, 0, 0, 200, 40, text='Профили',
                          fontSize=40, hoverColour=(78, 163, 39),
                          inactiveColour=(50, 122, 17),
@@ -270,12 +334,24 @@ profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=lambda: pick_p(result[3][1], result[3][2], result[3][0]))
-menu_prof = Button(profiles_b, 210, 700, 335, 55, text='Вернуться в меню',
+menu_prof = Button(profiles_b, 30, 700, 335, 55, text='Вернуться в меню',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=running_to_menu)
+menu_prof_change_name_back = Button(profiles_change_name_b, 300, 500, 385, 55, text='Вернуться в профили',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=running_to_profiles)
+menu_prof_change_name = Button(profiles_b, 380, 700, 335, 55, text='Сменить имя',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease=change_name)
 menu_high_score = Button(high_scores_b, 210, 700, 335, 55, text='Вернуться в меню',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
@@ -293,27 +369,27 @@ hangar_ship_default = Button(hangars_b, 50, 50, 250, 250, text='',
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=lambda: buy_ship(0, 'default.png'))
-hangar_ship_2 = Button(hangars_b, 420, 50, 250, 250, text='',
+hangar_ship_2 = Button(hangars_b, 420, 50, 250, 250, image=ship_2,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=lambda: buy_ship(50, 'ship2.png'))
-hangar_ship_3 = Button(hangars_b, 780, 50, 250, 250, text='',
+hangar_ship_3 = Button(hangars_b, 780, 50, 250, 250, image=ship_3,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=lambda: buy_ship(70, 'ship3.png'))
-hangar_ship_4 = Button(hangars_b, 50, 370, 250, 250, text='',
+hangar_ship_4 = Button(hangars_b, 50, 370, 250, 250, image= ship_4,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=lambda: buy_ship(100, 'ship4.png'))
-hangar_ship_5 = Button(hangars_b, 420, 370, 250, 250, text='',
+hangar_ship_5 = Button(hangars_b, 420, 370, 250, 250, image=ship_5,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=lambda: buy_ship(150, 'ship5.png'))
-hangar_ship_6 = Button(hangars_b, 780, 370, 250, 250, text='',
+hangar_ship_6 = Button(hangars_b, 780, 370, 250, 250, image=ship_6,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
@@ -322,6 +398,7 @@ player = Player()
 running = False
 running_pause = False
 profile = False
+profile_change_name = False
 high_score = False
 hangar = False
 menu = True
@@ -541,6 +618,27 @@ while True:
         pygame.draw.rect(screen, (0, 0, 255), (0, 0, 200, 40), 5)
         screen.blit(cursor, (x, y))
         pygame.display.update()
+    while profile_change_name:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                prof_change_name = False
+                con.close()
+                quit()
+        x, y = pygame.mouse.get_pos()
+        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
+            'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
+        screen.blit(bg_menu, (0, 0))
+        profiles_change_name_b.set_colorkey('BLACK')
+        screen.blit(profiles_change_name_b, (240, 100))
+        prof_change_name.listen(events)
+        prof_change_name.draw()
+        menu_prof_change_name_back.listen(events)
+        menu_prof_change_name_back.draw()
+        screen.blit(change_name_text, (200, 440))
+        screen.blit(cursor, (x + 240, y + 100))
+        pygame.display.update()
     while profile:
         events = pygame.event.get()
         for event in events:
@@ -568,12 +666,15 @@ while True:
         profile_4.draw()
         menu_prof.listen(events)
         menu_prof.draw()
+        menu_prof_change_name.listen(events)
+        menu_prof_change_name.draw()
         pygame.draw.rect(profiles_b, (0, 0, 255), (0, 0, 750, 800), 15)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 100, 295, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 250, 295, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 400, 295, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 550, 295, 55), 7)
-        pygame.draw.rect(profiles_b, (0, 0, 255), (210, 700, 335, 55), 7)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (30, 700, 335, 55), 7)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (380, 700, 335, 55), 7)
         screen.blit(cursor, (x + 240, y + 100))
         pygame.display.update()
     while high_score: # Окно с результатами(в процессе)
@@ -685,11 +786,6 @@ while True:
         screen.blit(ship_text_5, (590, 730))
         screen.blit(ship_text_6, (950, 730))
         screen.blit(ship_1, (210, 150))
-        screen.blit(ship_2, (580, 150))
-        screen.blit(ship_3, (945, 150))
-        screen.blit(ship_4, (210, 470))
-        screen.blit(ship_5, (580, 470))
-        screen.blit(ship_6, (945, 485))
         pygame.draw.rect(screen, (0, 0, 255), (150, 150, 250, 250), 6)
         pygame.draw.rect(screen, (0, 0, 255), (520, 150, 250, 250), 6)
         pygame.draw.rect(screen, (0, 0, 255), (880, 150, 250, 250), 6)
