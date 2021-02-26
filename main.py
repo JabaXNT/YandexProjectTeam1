@@ -32,6 +32,7 @@ def running_to_menu():
     high_score = False
     profile = False
     hangar = False
+    pygame.mouse.set_pos(0, 500)
 
 def running_to_profiles():
     global profile
@@ -56,6 +57,8 @@ def restart():
     global money_count
     global is_game_over
     global col
+    global player
+    player = Player()
     score = 0
     money_count = 0 
     sparkles = pygame.sprite.Group()
@@ -245,8 +248,6 @@ fps = 60
 game_over_text = pygame.font.Font(None, 70).render('ИГРА ОКОНЧЕНА', True, (0, 0, 255))
 change_name_text = pygame.font.Font(None, 40).render('Для сохранения нажмите Enter', True, (255, 255, 255))
 no_money = pygame.font.Font(None, 40).render('', True, (255, 255, 255))
-obs_count = 0
-nifo = 0
 active_profile_id = 1
 money_count = 0
 active_value = result[0][2]
@@ -441,7 +442,8 @@ while True:
                 quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    running_pause = True
+                    if not is_game_over:
+                        running_pause = True
                 if not running_pause:
                     if event.key == pygame.K_LEFT:
                         player.direction = 5
@@ -458,42 +460,37 @@ while True:
         bg_running = pygame.transform.scale(pygame.image.load(os.path.join(
             'images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_running, (0, 0))
-        if not running_pause:
+        if not running_pause and not is_game_over:
             camera.apply(player)
         if not is_game_over:
             screen.blit(player.image, (player.rect.x, player.rect.y))
         for sprite in enumerate(obstacles):
             if not running_pause and not is_game_over:
                 camera.apply(sprite[1])
-                if sprite[1].update(obstacles):  # Взрыв
+                if sprite[1].update(obstacles):
                     explosion = Explosion()
                     explosion.rect.x = sprite[1].rect.x
                     explosion.rect.y = sprite[1].rect.y
                     explosions.add(explosion)
-            screen.blit(sprite[1].image, (sprite[1].rect.x, sprite[1].rect.y))
-            if obs_count == 60:
-                if sprite[0] == 1 + nifo:
-                    if not (-660 < sprite[1].rect.x < 1640 and -660 < sprite[1].rect.y < 1640):
-                        sprite[1].kill()
-                        obs_count -= 1
-                        nifo = 0
-                    else:
-                        nifo += 1
-            if pygame.sprite.collide_mask(player, sprite[1]):  # Взрыв
+            if -200 < sprite[1].rect.x < 1280 and -150 < sprite[1].rect.y < 960:
+                screen.blit(sprite[1].image, (sprite[1].rect.x, sprite[1].rect.y))
+            if (sprite[1].rect.x > 1640 or sprite[1].rect.x < -360) and (
+                    sprite[1].rect.y > 1280 or sprite[1].rect.y < -520):
                 sprite[1].kill()
-                player.is_game_over = True
-                pygame.mixer.Sound.play(sound_explosion_ship)
+            if pygame.sprite.collide_mask(player, sprite[1]):
+                sprite[1].kill()
                 explosion = Explosion()
                 explosion.rect.x = player.rect.x
                 explosion.rect.y = player.rect.y
                 explosions.add(explosion)
                 col = pygame.time.get_ticks()
+                pygame.mixer.Sound.play(sound_explosion_ship)
         for sprite in gems:
-            if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 2640 or sprite.rect.y < -1360):
+            if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 1980 or sprite.rect.y < -1020):
                 sprite.kill()
             if not running_pause and not is_game_over:
                 camera.apply(sprite)
-            if pygame.sprite.collide_mask(player, sprite):  #  Гем
+            if pygame.sprite.collide_mask(player, sprite):
                 sprite.kill()
                 sparkle = Sparkle()
                 sparkle.rect.x = player.rect.x
@@ -501,13 +498,14 @@ while True:
                 sparkles.add(sparkle)
                 pygame.mixer.Sound.play(sound_gem)
                 money_count += 1
-            screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
+            if -200 < sprite.rect.x < 1280 and -150 < sprite.rect.y < 960:
+                screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
             sprite.update()
         for sprite in explosions:
-            if not running_pause:
+            if not running_pause and not is_game_over:
                 sprite.update()
+                camera.apply(sprite)
             screen.blit(sprite.explosion, (sprite.rect.x, sprite.rect.y))
-            camera.apply(sprite)
         for sprite in sparkles:
             if not running_pause:
                 sprite.update()
@@ -558,7 +556,6 @@ while True:
             res = cur.execute(f'UPDATE data SET money = {active_value} + {money_count} WHERE id = {active_profile_id}')
             con.commit()
             res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
-            print(res2)
             moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
             result = cur.execute("""SELECT * FROM data""").fetchall()
             pygame.draw.rect(game_over_b, (0, 0, 255), (0, 0, 800, 300), 15)
@@ -567,19 +564,6 @@ while True:
             screen.blit(game_over_text, (430, 350))
             screen.blit(cursor, (x + 240, y + 300))
         else:
-            obstacle = Obstacle()
-            obstacle.rect.x = random.randint(-1530, 1820)
-            obstacle.rect.y = random.randint(-1780, 1780)
-            if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
-                obstacles.add(obstacle)
-            if obs_count < 40:
-                obs_count += 1
-            if random.randint(1, 30) == 1:
-                gem = Gem()
-                gem.rect.x = random.randint(-2360, 2640)
-                gem.rect.y = random.randint(-2520, 2480)
-                if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
-                    gems.add(gem)
             camera.update(player)
             score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
             if col == 9999999999:
@@ -587,22 +571,20 @@ while True:
                 score += 0.1
             else:
                 player.image = pygame.image.load(os.path.join('images\\Space\\explosion\\8.png')).convert_alpha()
-        obstacle = Obstacle()
-        obstacle.rect.x = random.randint(-2360, 1820)
-        obstacle.rect.y = random.randint(-2520, 1780)
-        if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
-            obstacles.add(obstacle)
-        if obs_count < 40:
-            obs_count += 1
-        if random.randint(1, 30) == 1:
-            gem = Gem()
-            gem.rect.x = random.randint(-2360, 2640)
-            gem.rect.y = random.randint(-2520, 2480)
-            if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
-                gems.add(gem)
-        camera.update(player)
-        if pygame.time.get_ticks() - 700 > col:
-            is_game_over = True
+            obstacle = Obstacle()
+            obstacle.rect.x = random.randint(-1360, 1640)
+            obstacle.rect.y = random.randint(-520, 1280)
+            if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
+                obstacles.add(obstacle)
+            if random.randint(1, 50) == 1:
+                gem = Gem()
+                gem.rect.x = random.randint(-1360, 2640)
+                gem.rect.y = random.randint(-1020, 1980)
+                if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
+                    gems.add(gem)
+            camera.update(player)
+            if pygame.time.get_ticks() - 700 > col:
+                is_game_over = True
         score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
         gem_count_text = pygame.font.Font(None, 130).render(f'{money_count}', True, (100, 255, 100))
         screen.blit(score_text, (5, 20))
