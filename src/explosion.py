@@ -6,7 +6,7 @@ class Explosion(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.stage = 1
-        self.explosion = pygame.image.load(os.path.join('images\\Space\\explosion\\' + str(int(self.stage // 1)) + '.png')).convert_alpha()
+        self.explosion = pygame.image.load(os.path.join('data\\images\\Space\\explosion\\' + str(int(self.stage // 1)) + '.png')).convert_alpha()
         self.rect = self.explosion.get_rect()
         self.rect.x = 0
         self.rect.y = 0
@@ -16,4 +16,4 @@ class Explosion(pygame.sprite.Sprite):
             self.stage += 0.4
         else:
             self.kill()
-        self.explosion = pygame.image.load(os.path.join('images\\Space\\explosion\\' + str(int(self.stage // 1)) + '.png')).convert_alpha()
+        self.explosion = pygame.image.load(os.path.join('data\\images\\Space\\explosion\\' + str(int(self.stage // 1)) + '.png')).convert_alpha()

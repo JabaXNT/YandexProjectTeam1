@@ -208,21 +208,21 @@ con = sqlite3.connect(os.path.join('src\\profiles.db'))
 cur = con.cursor()
 font = pygame.font.Font(None, 130)
 soundtrack_menu = pygame.mixer.Sound(os.path.join(
-    'images\\imperial_march.wav'))  # путь до музыки в меню
+    'data\\sounds\\imperial_march.wav'))  # путь до музыки в меню
 soundtrack_in_game = pygame.mixer.Sound(os.path.join(
-    'images\\Sound\\in_game.mp3'))
+    'data\\sounds\\in_game.mp3'))
 sound_explosion_ship = pygame.mixer.Sound(os.path.join(
-    'images\\Sound\\explosion_7.wav'))
+    'data\\sounds\\explosion_7.wav'))
 sound_click = pygame.mixer.Sound(os.path.join(
-    'images\\Sound\\click.wav'))
+    'data\\sounds\\click.wav'))
 sound_gem = pygame.mixer.Sound(os.path.join(
-    'images\\Sound\\gem.mp3'))
+    'data\\sounds\\gem.mp3'))
 sound_mission = pygame.mixer.Sound(os.path.join(
-    'images\\imperial_march.wav'))
+    'data\\sounds\\imperial_march.wav'))
 money_image = pygame.image.load(os.path.join(
-    'images\\Space\\gems\\money.png'))  # иконка валюты в меню
+    'data\\images\\Space\\gems\\money.png'))  # иконка валюты в меню
 volume_image = pygame.image.load(os.path.join(
-    'images\\volume_icon.png'))  # иконка звука в меню
+    'data\\images\\volume_icon.png'))  # иконка звука в меню
 volume_image = pygame.transform.scale(volume_image, (75, 75))
 ship_1 = pygame.image.load(os.path.join('images\\Ships\\default.png'))
 ship_1 = pygame.transform.scale(ship_1, (134, 236))
@@ -430,7 +430,7 @@ profile_change_name = False
 high_score = False
 hangar = False
 menu = True
-cursor = pygame.image.load(os.path.join('images\\arrow.png')).convert_alpha()
+cursor = pygame.image.load(os.path.join('data\\images\\arrow.png')).convert_alpha()
 while True:
     while running:
         events = pygame.event.get()
@@ -458,7 +458,7 @@ while True:
         pygame.mixer.Sound.set_volume(soundtrack_menu, 0)
         in_game_volume()
         bg_running = pygame.transform.scale(pygame.image.load(os.path.join(
-            'images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
+            'data\\images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_running, (0, 0))
         if not running_pause and not is_game_over:
             camera.apply(player)
@@ -570,7 +570,7 @@ while True:
                 player.update()
                 score += 0.1
             else:
-                player.image = pygame.image.load(os.path.join('images\\Space\\explosion\\8.png')).convert_alpha()
+                player.image = pygame.image.load(os.path.join('data\\images\\Space\\explosion\\8.png')).convert_alpha()
             obstacle = Obstacle()
             obstacle.rect.x = random.randint(-1360, 1640)
             obstacle.rect.y = random.randint(-520, 1280)
@@ -601,7 +601,7 @@ while True:
                 quit()
         x, y = pygame.mouse.get_pos()
         bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
-            'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
+            'data\\images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         screen.blit(money_image, (1200, 5))
         screen.blit(moneys, (1200 - moneys.get_width(), 0))
@@ -663,7 +663,7 @@ while True:
                 quit()
         x, y = pygame.mouse.get_pos()
         bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
-            'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
+            'data\\images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         profiles.fill((0, 80, 199))
         profiles.set_alpha(75)
@@ -703,7 +703,7 @@ while True:
         res2.sort()
         x, y = pygame.mouse.get_pos()
         bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
-            'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
+            'data\\images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         high_scores.fill((0, 80, 199))
         high_scores.set_alpha(75)
