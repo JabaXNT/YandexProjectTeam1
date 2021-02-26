@@ -77,10 +77,33 @@ def in_game_volume():
 def on_click_button():
     pygame.mixer.Sound.play(sound_click)
 
-def buy_ship(cost, name):
-    global res2
-    res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
-    player.ship = pygame.image.load(os.path.join(f'images\\Ships\\{name}')).convert_alpha()
+def buy_ship(cost, name, id):
+    global moneys
+    global no_money
+    global list_of_ship_text
+    global active_value
+    global result
+    res2 = cur.execute(f'SELECT ships FROM data WHERE id = {active_profile_id}').fetchall()
+    ships = res2[0][0].split(' ')
+    if ships[id - 1] == '1':
+        player.ship = pygame.image.load(os.path.join(f'images\\Ships\\{name}')).convert_alpha()
+    else:
+        if active_value >= cost:
+            active_value -= cost
+            ships[id - 1] = '1'
+            ships = ' '.join(ships)
+            res = cur.execute('UPDATE data SET ships = ? WHERE id = ?', (ships, active_profile_id))
+            con.commit()
+            moneys = font.render(f'{active_value}', False, (100, 255, 100))
+            res2 = cur.execute('UPDATE data SET money = ? WHERE id = ?', (active_value, active_profile_id))
+            con.commit()
+            no_money = pygame.font.Font(None, 40).render('', True, (255, 255, 255))
+            list_of_ship_text[id - 1] = pygame.font.Font(None, 40).render('Куплено', True, (255, 255, 255))
+        else:
+            no_money = pygame.font.Font(None, 40).render('Не хватает денег', True, (255, 255, 255))
+    result = cur.execute("""SELECT * FROM data""").fetchall()
+            
+            
 
 def set_text():
     global result
@@ -221,6 +244,7 @@ active_name = None
 fps = 60
 game_over_text = pygame.font.Font(None, 70).render('ИГРА ОКОНЧЕНА', True, (0, 0, 255))
 change_name_text = pygame.font.Font(None, 40).render('Для сохранения нажмите Enter', True, (255, 255, 255))
+no_money = pygame.font.Font(None, 40).render('', True, (255, 255, 255))
 obs_count = 0
 nifo = 0
 active_profile_id = 1
@@ -371,32 +395,32 @@ hangar_ship_default = Button(hangars_b, 50, 50, 250, 250, text='',
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(0, 'default.png'))
+                   onClick=on_click_button, onRelease=lambda: buy_ship(0, 'default.png', 1))
 hangar_ship_2 = Button(hangars_b, 420, 50, 250, 250, image=ship_2,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(50, 'ship2.png'))
+                   onClick=on_click_button, onRelease=lambda: buy_ship(50, 'ship2.png', 2))
 hangar_ship_3 = Button(hangars_b, 780, 50, 250, 250, image=ship_3,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(70, 'ship3.png'))
+                   onClick=on_click_button, onRelease=lambda: buy_ship(70, 'ship3.png', 3))
 hangar_ship_4 = Button(hangars_b, 50, 370, 250, 250, image= ship_4,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(100, 'ship4.png'))
+                   onClick=on_click_button, onRelease=lambda: buy_ship(100, 'ship4.png', 4))
 hangar_ship_5 = Button(hangars_b, 420, 370, 250, 250, image=ship_5,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(150, 'ship5.png'))
+                   onClick=on_click_button, onRelease=lambda: buy_ship(150, 'ship5.png', 5))
 hangar_ship_6 = Button(hangars_b, 780, 370, 250, 250, image=ship_6,
                    fontSize=40, hoverColour=(78, 163, 39),
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(300, 'ship6.png'))
+                   onClick=on_click_button, onRelease=lambda: buy_ship(300, 'ship6.png', 6))
 player = Player()
 running = False
 running_pause = False
@@ -770,6 +794,7 @@ while True:
             ship_text_6 = pygame.font.Font(None, 40).render('Куплено', True, (255, 255, 255))
         else:
             ship_text_6 = pygame.font.Font(None, 40).render('Цена: 300', True, (255, 255, 255))
+        list_of_ship_text = [ship_text_2, ship_text_3, ship_text_4, ship_text_5, ship_text_5, ship_text_6]
         menu_hangar.listen(events)
         menu_hangar.draw()
         hangar_ship_default.listen(events)
@@ -793,6 +818,7 @@ while True:
         screen.blit(ship_text_4, (220, 730))
         screen.blit(ship_text_5, (590, 730))
         screen.blit(ship_text_6, (950, 730))
+        screen.blit(no_money, (500, 800))
         screen.blit(ship_1, (210, 150))
         pygame.draw.rect(screen, (0, 0, 255), (150, 150, 250, 250), 6)
         pygame.draw.rect(screen, (0, 0, 255), (520, 150, 250, 250), 6)
