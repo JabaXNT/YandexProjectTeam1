@@ -135,8 +135,10 @@ def pick_profile_win():
 def change_name():
     global profile_change_name
     global profile
+    global change_name_text
     profile = False
     profile_change_name = True
+    change_name_text = pygame.font.Font(None, 40).render('Для сохранения нажмите Enter', True, (255, 255, 255))
 
 def high_score_win():
     global high_score
@@ -233,6 +235,7 @@ pause = pygame.Surface((750, 600))
 profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
 profiles_change_name_b = pygame.Surface((750, 800))
+profiles_change_name_b_b = pygame.Surface((750, 800))
 high_scores = pygame.Surface((750, 800))
 high_scores_b = pygame.Surface((750, 800))
 hangars = pygame.Surface((1080, 800))
@@ -241,7 +244,7 @@ pygame.mouse.set_visible(False)
 # слайдер, можно дизайн переделать
 volume_slider = Slider(screen, 100, 920, 200, 20, min=0, max=100, step=10)
 in_game_volume_slider = Slider(pause_b, 100, 300, 550, 20, min=0, max=100, step=5, initial = 10)
-prof_change_name = TextBox(profiles_change_name_b, 0, 0, 600, 80, fontSize=50,
+prof_change_name = TextBox(profiles_change_name_b, 75, 100, 600, 80, fontSize=50,
                   borderColour=(255, 0, 0), textColour=(0, 200, 0),
                   onSubmit=set_text, radius=10, borderThickness=3)
 menu_b_profiles = Button(screen, 0, 0, 200, 40, text='Профили',
@@ -340,7 +343,7 @@ menu_prof = Button(profiles_b, 30, 700, 335, 55, text='Вернуться в м�
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=running_to_menu)
-menu_prof_change_name_back = Button(profiles_change_name_b, 300, 500, 385, 55, text='Вернуться в профили',
+menu_prof_change_name_back = Button(profiles_change_name_b, 200, 500, 385, 55, text='Вернуться в профили',
                    fontSize=40, hoverColour=(78, 163, 39),
                    inactiveColour=(50, 122, 17),
                    pressedColour=(231, 247, 49),
@@ -630,13 +633,18 @@ while True:
         bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
             'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
+        profiles_change_name_b_b.fill((0, 80, 199))
+        profiles_change_name_b_b.set_alpha(75)
         profiles_change_name_b.set_colorkey('BLACK')
+        screen.blit(profiles_change_name_b_b, (240, 100))
         screen.blit(profiles_change_name_b, (240, 100))
         prof_change_name.listen(events)
         prof_change_name.draw()
         menu_prof_change_name_back.listen(events)
         menu_prof_change_name_back.draw()
-        screen.blit(change_name_text, (200, 440))
+        pygame.draw.rect(profiles_change_name_b, (0, 0, 255), (200, 500, 385, 55), 6)
+        pygame.draw.rect(profiles_change_name_b, (0, 0, 255), (0, 0, 750, 800), 15)
+        screen.blit(change_name_text, (400, 440))
         screen.blit(cursor, (x + 240, y + 100))
         pygame.display.update()
     while profile:
