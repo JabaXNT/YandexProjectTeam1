@@ -58,7 +58,6 @@ def restart():
     global is_game_over
     global col
     global player
-    player = Player()
     score = 0
     money_count = 0 
     sparkles = pygame.sprite.Group()
@@ -89,7 +88,8 @@ def buy_ship(cost, name, id):
     res2 = cur.execute(f'SELECT ships FROM data WHERE id = {active_profile_id}').fetchall()
     ships = res2[0][0].split(' ')
     if ships[id - 1] == '1':
-        player.ship = pygame.image.load(os.path.join(f'images\\Ships\\{name}')).convert_alpha()
+        print('kek')
+        player.ship = pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}')).convert_alpha()
     else:
         if active_value >= cost:
             active_value -= cost
@@ -224,17 +224,17 @@ money_image = pygame.image.load(os.path.join(
 volume_image = pygame.image.load(os.path.join(
     'data\\images\\volume_icon.png'))  # иконка звука в меню
 volume_image = pygame.transform.scale(volume_image, (75, 75))
-ship_1 = pygame.image.load(os.path.join('images\\Ships\\default.png'))
+ship_1 = pygame.image.load(os.path.join('data\\images\\Ships\\default.png'))
 ship_1 = pygame.transform.scale(ship_1, (134, 236))
-ship_2 = pygame.image.load(os.path.join('images\\Ships\\ship2.png'))
+ship_2 = pygame.image.load(os.path.join('data\\images\\Ships\\ship2.png'))
 ship_2 = pygame.transform.scale(ship_2, (134, 236))
-ship_3 = pygame.image.load(os.path.join('images\\Ships\\ship3.png'))
+ship_3 = pygame.image.load(os.path.join('data\\images\\Ships\\ship3.png'))
 ship_3 = pygame.transform.scale(ship_3, (134, 236))
-ship_4 = pygame.image.load(os.path.join('images\\Ships\\ship4.png'))
+ship_4 = pygame.image.load(os.path.join('data\\images\\Ships\\ship4.png'))
 ship_4 = pygame.transform.scale(ship_4, (134, 236))
-ship_5 = pygame.image.load(os.path.join('images\\Ships\\ship5.png'))
+ship_5 = pygame.image.load(os.path.join('data\\images\\Ships\\ship5.png'))
 ship_5 = pygame.transform.scale(ship_5, (134, 236))
-ship_6 = pygame.image.load(os.path.join('images\\Ships\\ship6.png'))
+ship_6 = pygame.image.load(os.path.join('data\\images\\Ships\\ship6.png'))
 ship_6 = pygame.transform.scale(ship_6, (134, 236))
 money_image = pygame.transform.scale(money_image, (75, 75))
 moneys = font.render("0", False, (100, 255, 100))
@@ -637,7 +637,7 @@ while True:
                 quit()
         x, y = pygame.mouse.get_pos()
         bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
-            'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
+            'data\\images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         profiles_change_name_b_b.fill((0, 80, 199))
         profiles_change_name_b_b.set_alpha(75)
@@ -746,8 +746,7 @@ while True:
                 con.close()
                 quit()
         x, y = pygame.mouse.get_pos()
-        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join(
-            'images\\backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
+        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join('data\\images\\Backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         hangars.fill((0, 80, 199))
         hangars.set_alpha(75)
