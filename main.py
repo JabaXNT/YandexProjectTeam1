@@ -17,7 +17,6 @@ def menu_to_running():
     menu = False
     running = True
     restart()
-    print(player.ship)
 
 
 def running_to_menu():
@@ -33,6 +32,7 @@ def running_to_menu():
     profile = False
     hangar = False
     pygame.mouse.set_pos(0, 500)
+
 
 def running_to_profiles():
     global profile
@@ -58,6 +58,8 @@ def restart():
     global is_game_over
     global col
     global player
+    global current_ship
+    player = Player(current_ship)
     score = 0
     money_count = 0 
     sparkles = pygame.sprite.Group()
@@ -73,11 +75,14 @@ def restart():
 def volume():  # функция для изменения звука(вызывется в главном цикле)
     pygame.mixer.Sound.set_volume(soundtrack_menu, volume_slider.getValue() / 100)
 
+
 def in_game_volume():
     pygame.mixer.Sound.set_volume(soundtrack_in_game, in_game_volume_slider.getValue() / 100)
 
+
 def on_click_button():
     pygame.mixer.Sound.play(sound_click)
+########################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
 def buy_ship(cost, name, id):
     global moneys
@@ -85,11 +90,11 @@ def buy_ship(cost, name, id):
     global list_of_ship_text
     global active_value
     global result
+    global current_ship
     res2 = cur.execute(f'SELECT ships FROM data WHERE id = {active_profile_id}').fetchall()
     ships = res2[0][0].split(' ')
     if ships[id - 1] == '1':
-        print('kek')
-        player.ship = pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}')).convert_alpha()
+        current_ship = pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}')).convert_alpha()
     else:
         if active_value >= cost:
             active_value -= cost
@@ -102,10 +107,10 @@ def buy_ship(cost, name, id):
             con.commit()
             no_money = pygame.font.Font(None, 40).render('', True, (255, 255, 255))
             list_of_ship_text[id - 1] = pygame.font.Font(None, 40).render('Куплено', True, (255, 255, 255))
+            current_ship = pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}')).convert_alpha()
         else:
             no_money = pygame.font.Font(None, 40).render('Не хватает денег', True, (255, 255, 255))
     result = cur.execute("""SELECT * FROM data""").fetchall()
-            
             
 
 def set_text():
@@ -122,29 +127,29 @@ def set_text():
     result = cur.execute("""SELECT * FROM data""").fetchall()
     change_name_text = pygame.font.Font(None, 40).render('Сохранено', True, (255, 255, 255))
     profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   inactiveColour=(50, 122, 17),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: pick_p(result[0][1], result[0][2], result[0][0]))
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[0][1], result[0][2], result[0][0]))
     profile_2 = Button(profiles_b, 225, 250, 295, 55, text=f'{result[1][1]}',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   inactiveColour=(50, 122, 17),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: pick_p(result[1][1], result[1][2], result[1][0]))
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[1][1], result[1][2], result[1][0]))
     profile_3 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[2][1]}',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   inactiveColour=(50, 122, 17),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: pick_p(result[2][1], result[2][2], result[2][0]))
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[2][1], result[2][2], result[2][0]))
     profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   inactiveColour=(50, 122, 17),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: pick_p(result[3][1], result[3][2], result[3][0]))
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[3][1], result[3][2], result[3][0]))
     menu_b_profiles = Button(screen, 0, 0, 200, 40, text=kekw,
                              fontSize=40, hoverColour=(78, 163, 39),
                              inactiveColour=(50, 122, 17),
@@ -152,11 +157,13 @@ def set_text():
                              textColour=(0, 0, 255),
                              onClick=pick_profile_win)
 
+
 def pick_profile_win():
     global profile
     global menu
     profile = True
     menu = False
+
 
 def change_name():
     global profile_change_name
@@ -166,17 +173,20 @@ def change_name():
     profile_change_name = True
     change_name_text = pygame.font.Font(None, 40).render('Для сохранения нажмите Enter', True, (255, 255, 255))
 
+
 def high_score_win():
     global high_score
     global menu
     high_score = True
     menu = False
 
+
 def hangar_win():
     global menu
     global hangar
     hangar = True
     menu = False
+
 
 def pick_p(name, value, id):
     global profile
@@ -268,10 +278,10 @@ hangars_b = pygame.Surface((1080, 800))
 pygame.mouse.set_visible(False)
 # слайдер, можно дизайн переделать
 volume_slider = Slider(screen, 100, 920, 200, 20, min=0, max=100, step=10)
-in_game_volume_slider = Slider(pause_b, 100, 300, 550, 20, min=0, max=100, step=5, initial = 10)
+in_game_volume_slider = Slider(pause_b, 100, 300, 550, 20, min=0, max=100, step=5, initial=10)
 prof_change_name = TextBox(profiles_change_name_b, 75, 100, 600, 80, fontSize=50,
-                  borderColour=(255, 0, 0), textColour=(0, 200, 0),
-                  onSubmit=set_text, radius=10, borderThickness=3)
+                           borderColour=(255, 0, 0), textColour=(0, 200, 0),
+                           onSubmit=set_text, radius=10, borderThickness=3)
 menu_b_profiles = Button(screen, 0, 0, 200, 40, text='Профили',
                          fontSize=40, hoverColour=(78, 163, 39),
                          inactiveColour=(50, 122, 17),
@@ -369,60 +379,61 @@ menu_prof = Button(profiles_b, 30, 700, 335, 55, text='Вернуться в м�
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=running_to_menu)
 menu_prof_change_name_back = Button(profiles_change_name_b, 200, 500, 385, 55, text='Вернуться в профили',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   inactiveColour=(50, 122, 17),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=running_to_profiles)
+                                    fontSize=40, hoverColour=(78, 163, 39),
+                                    inactiveColour=(50, 122, 17),
+                                    pressedColour=(231, 247, 49),
+                                    textColour=(0, 0, 255),
+                                    onClick=on_click_button, onRelease=running_to_profiles)
 menu_prof_change_name = Button(profiles_b, 380, 700, 335, 55, text='Сменить имя',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   inactiveColour=(50, 122, 17),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=change_name)
+                               fontSize=40, hoverColour=(78, 163, 39),
+                               inactiveColour=(50, 122, 17),
+                               pressedColour=(231, 247, 49),
+                               textColour=(0, 0, 255),
+                               onClick=on_click_button, onRelease=change_name)
 menu_high_score = Button(high_scores_b, 210, 700, 335, 55, text='Вернуться в меню',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   inactiveColour=(50, 122, 17),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=running_to_menu)
+                         fontSize=40, hoverColour=(78, 163, 39),
+                         inactiveColour=(50, 122, 17),
+                         pressedColour=(231, 247, 49),
+                         textColour=(0, 0, 255),
+                         onClick=on_click_button, onRelease=running_to_menu)
 menu_hangar = Button(hangars_b, 50, 700, 335, 55, text='Вернуться в меню',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   inactiveColour=(50, 122, 17),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=running_to_menu)
+                     fontSize=40, hoverColour=(78, 163, 39),
+                     inactiveColour=(50, 122, 17),
+                     pressedColour=(231, 247, 49),
+                     textColour=(0, 0, 255),
+                     onClick=on_click_button, onRelease=running_to_menu)
 hangar_ship_default = Button(hangars_b, 50, 50, 250, 250, text='',
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(0, 'default.png', 1))
+                             fontSize=40, hoverColour=(78, 163, 39),
+                             pressedColour=(231, 247, 49),
+                             textColour=(0, 0, 255),
+                             onClick=on_click_button, onRelease=lambda: buy_ship(0, 'default.png', 1))
 hangar_ship_2 = Button(hangars_b, 420, 50, 250, 250, image=ship_2,
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(50, 'ship2.png', 2))
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: buy_ship(50, 'ship2.png', 2))
 hangar_ship_3 = Button(hangars_b, 780, 50, 250, 250, image=ship_3,
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(70, 'ship3.png', 3))
-hangar_ship_4 = Button(hangars_b, 50, 370, 250, 250, image= ship_4,
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(100, 'ship4.png', 4))
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: buy_ship(70, 'ship3.png', 3))
+hangar_ship_4 = Button(hangars_b, 50, 370, 250, 250, image=ship_4,
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: buy_ship(100, 'ship4.png', 4))
 hangar_ship_5 = Button(hangars_b, 420, 370, 250, 250, image=ship_5,
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(150, 'ship5.png', 5))
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: buy_ship(150, 'ship5.png', 5))
 hangar_ship_6 = Button(hangars_b, 780, 370, 250, 250, image=ship_6,
-                   fontSize=40, hoverColour=(78, 163, 39),
-                   pressedColour=(231, 247, 49),
-                   textColour=(0, 0, 255),
-                   onClick=on_click_button, onRelease=lambda: buy_ship(300, 'ship6.png', 6))
-player = Player()
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: buy_ship(300, 'ship6.png', 6))
+current_ship = pygame.image.load(os.path.join('data\\images\\Ships\\ship1.png')).convert_alpha()
+player = Player(current_ship)
 running = False
 running_pause = False
 profile = False
@@ -485,6 +496,17 @@ while True:
                 explosions.add(explosion)
                 col = pygame.time.get_ticks()
                 pygame.mixer.Sound.play(sound_explosion_ship)
+                res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
+                if round(score) > res2[0][0]:
+                    res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
+                    con.commit()
+                res = cur.execute(
+                    f'UPDATE data SET money = {active_value} + {money_count} WHERE id = {active_profile_id}')
+                con.commit()
+                res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
+                active_value = res2[0][0]
+                moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
+                result = cur.execute("""SELECT * FROM data""").fetchall()
         for sprite in gems:
             if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 1980 or sprite.rect.y < -1020):
                 sprite.kill()
@@ -548,16 +570,6 @@ while True:
             game_over_restart.listen(events)
             game_over_restart.draw()
             x, y = pygame.mouse.get_pos()
-            score = score
-            res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
-            if round(score) > res2[0][0]:
-                res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
-                con.commit()
-            res = cur.execute(f'UPDATE data SET money = {active_value} + {money_count} WHERE id = {active_profile_id}')
-            con.commit()
-            res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
-            moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
-            result = cur.execute("""SELECT * FROM data""").fetchall()
             pygame.draw.rect(game_over_b, (0, 0, 255), (0, 0, 800, 300), 15)
             pygame.draw.rect(game_over_b, (0, 0, 255), (53, 173, 295, 55), 7)
             pygame.draw.rect(game_over_b, (0, 0, 255), (453, 173, 295, 55), 7)
@@ -691,7 +703,7 @@ while True:
         pygame.draw.rect(profiles_b, (0, 0, 255), (380, 700, 335, 55), 7)
         screen.blit(cursor, (x + 240, y + 100))
         pygame.display.update()
-    while high_score: # Окно с результатами(в процессе)
+    while high_score:  # Окно с результатами(в процессе)
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
@@ -746,7 +758,8 @@ while True:
                 con.close()
                 quit()
         x, y = pygame.mouse.get_pos()
-        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join('data\\images\\Backgrounds\\menu.jpg')).convert_alpha(), (1280, 960))
+        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join('data\\images\\Backgrounds\\menu.jpg'))
+                                         .convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         hangars.fill((0, 80, 199))
         hangars.set_alpha(75)
