@@ -16,6 +16,7 @@ class Player(pygame.sprite.Sprite):
         self.speedx = 0
         self.last_update = pygame.time.get_ticks()
         self.direction = 0
+        self.speed_koef = 1
 
     def update(self):
         speed = self.get_speed()
@@ -53,4 +54,4 @@ class Player(pygame.sprite.Sprite):
             self.speedy = 0
         if 1 < self.speedx or -1 > self.speedx:
             self.speedx = 0
-        return [speedx, speedy]
+        return [speedx * self.speed_koef, speedy * self.speed_koef]

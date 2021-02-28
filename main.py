@@ -9,6 +9,7 @@ from src.obstacle import Obstacle
 from src.gem import Gem
 from src.explosion import Explosion
 from src.sparkle import Sparkle
+from src.bonus import Bonus
 
 
 def menu_to_running():
@@ -51,6 +52,7 @@ def restart():
     global running_pause
     global camera
     global gems
+    global bonuses
     global sparkles
     global explosions
     global score
@@ -59,6 +61,9 @@ def restart():
     global col
     global player
     global current_ship
+    global boost_duration
+    global double_gems_duration
+    global shield_duration
     player = Player(current_ship)
     score = 0
     money_count = 0 
@@ -67,6 +72,10 @@ def restart():
     camera = Camera()
     obstacles = pygame.sprite.Group()
     gems = pygame.sprite.Group()
+    bonuses = pygame.sprite.Group()
+    boost_duration = [0, 0]
+    double_gems_duration = [0, 0]
+    shield_duration = [0, 0]
     running_pause = False
     is_game_over = False
     col = 9999999999
@@ -82,7 +91,53 @@ def in_game_volume():
 
 def on_click_button():
     pygame.mixer.Sound.play(sound_click)
-########################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+
+
+def prof_reset():# функция для сброса
+    global result
+    global profile_1
+    global profile_2
+    global profile_3
+    global profile_4
+    global moneys
+    global active_value
+    global menu_b_profiles
+    res = cur.execute(f'UPDATE data SET name = ?, money = ?, high_score = ?, ships = ? WHERE id = ?', ('profile', 0, 0, '1 0 0 0 0 0', active_profile_id,))
+    con.commit()
+    result = cur.execute("""SELECT * FROM data""").fetchall()
+    profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[0][1], result[0][2], result[0][0]))
+    profile_2 = Button(profiles_b, 225, 250, 295, 55, text=f'{result[1][1]}',
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[1][1], result[1][2], result[1][0]))
+    profile_3 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[2][1]}',
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[2][1], result[2][2], result[2][0]))
+    profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[3][1], result[3][2], result[3][0]))
+    menu_b_profiles = Button(screen, 0, 0, 200, 40, text='profile',
+                             fontSize=40, hoverColour=(78, 163, 39),
+                             inactiveColour=(50, 122, 17),
+                             pressedColour=(231, 247, 49),
+                             textColour=(0, 0, 255),
+                             onClick=pick_profile_win)
+    active_value = 0
+    moneys = font.render(f'{active_value}', False, (100, 255, 100))
+
 
 def buy_ship(cost, name, id):
     global moneys
@@ -229,6 +284,8 @@ sound_gem = pygame.mixer.Sound(os.path.join(
     'data\\sounds\\gem.mp3'))
 sound_mission = pygame.mixer.Sound(os.path.join(
     'data\\sounds\\imperial_march.wav'))
+sound_bonus = pygame.mixer.Sound(os.path.join(
+    'data\\sounds\\bonus.wav'))
 money_image = pygame.image.load(os.path.join(
     'data\\images\\Space\\gems\\money.png'))  # иконка валюты в меню
 volume_image = pygame.image.load(os.path.join(
@@ -378,6 +435,12 @@ menu_prof = Button(profiles_b, 30, 700, 335, 55, text='Вернуться в м�
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=running_to_menu)
+menu_prof_reset = Button(profiles_b, 30, 30, 335, 55, text='Сбросить прогресс',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease= lambda: prof_reset())
 menu_prof_change_name_back = Button(profiles_change_name_b, 200, 500, 385, 55, text='Вернуться в профили',
                                     fontSize=40, hoverColour=(78, 163, 39),
                                     inactiveColour=(50, 122, 17),
@@ -433,6 +496,15 @@ hangar_ship_6 = Button(hangars_b, 780, 370, 250, 250, image=ship_6,
                        textColour=(0, 0, 255),
                        onClick=on_click_button, onRelease=lambda: buy_ship(300, 'ship6.png', 6))
 current_ship = pygame.image.load(os.path.join('data\\images\\Ships\\ship1.png')).convert_alpha()
+boostC = pygame.image.load(os.path.join('data\\images\\space\\bonus\\boostC.png')).convert_alpha()
+double_gemsC = pygame.image.load(os.path.join('data\\images\\space\\bonus\\double_gemsC.png')).convert_alpha()
+shieldC = pygame.image.load(os.path.join('data\\images\\space\\bonus\\shieldC.png')).convert_alpha()
+boostC = pygame.transform.scale(boostC, (70, 70))
+double_gemsC = pygame.transform.scale(double_gemsC, (70, 70))
+shieldC = pygame.transform.scale(shieldC, (70, 70))
+double = pygame.image.load(os.path.join('data\\images\\space\\gems\\double.png')).convert_alpha()
+ship_shield = pygame.image.load(os.path.join('data\\images\\space\\bonus\\ship_shield.png')).convert_alpha()
+ship_shield = pygame.transform.scale(ship_shield, (150, 150))
 player = Player(current_ship)
 running = False
 running_pause = False
@@ -457,9 +529,9 @@ while True:
                         running_pause = True
                 if not running_pause:
                     if event.key == pygame.K_LEFT:
-                        player.direction = 5
+                        player.direction = 5 * rot_koef
                     if event.key == pygame.K_RIGHT:
-                        player.direction = -5
+                        player.direction = -5 * rot_koef
             if event.type == pygame.KEYUP:
                 if not running_pause:
                     if event.key == pygame.K_LEFT:
@@ -494,19 +566,22 @@ while True:
                 explosion.rect.x = player.rect.x
                 explosion.rect.y = player.rect.y
                 explosions.add(explosion)
-                col = pygame.time.get_ticks()
                 pygame.mixer.Sound.play(sound_explosion_ship)
-                res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
-                if round(score) > res2[0][0]:
-                    res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
+                if shield_duration[1] > 0:
+                    shield_duration[1] = 0
+                else:
+                    col = pygame.time.get_ticks()
+                    res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
+                    if round(score) > res2[0][0]:
+                        res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
+                        con.commit()
+                    res = cur.execute(
+                        f'UPDATE data SET money = {active_value} + {money_count} WHERE id = {active_profile_id}')
                     con.commit()
-                res = cur.execute(
-                    f'UPDATE data SET money = {active_value} + {money_count} WHERE id = {active_profile_id}')
-                con.commit()
-                res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
-                active_value = res2[0][0]
-                moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
-                result = cur.execute("""SELECT * FROM data""").fetchall()
+                    res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
+                    active_value = res2[0][0]
+                    moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
+                    result = cur.execute("""SELECT * FROM data""").fetchall()
         for sprite in gems:
             if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 1980 or sprite.rect.y < -1020):
                 sprite.kill()
@@ -520,9 +595,29 @@ while True:
                 sparkles.add(sparkle)
                 pygame.mixer.Sound.play(sound_gem)
                 money_count += 1
+                if double_gems_duration[1] > 0:
+                    money_count += 1
             if -200 < sprite.rect.x < 1280 and -150 < sprite.rect.y < 960:
+                if double_gems_duration[1] > 0:
+                    screen.blit(double, (sprite.rect.x - 10, sprite.rect.y - 10))
                 screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
             sprite.update()
+        for sprite in bonuses:
+            if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 1980 or sprite.rect.y < -1020):
+                sprite.kill()
+            if not running_pause and not is_game_over:
+                camera.apply(sprite)
+            if pygame.sprite.collide_mask(player, sprite):
+                sprite.kill()
+                pygame.mixer.Sound.play(sound_bonus)
+                if sprite.type == 1:
+                    boost_duration = [pygame.time.get_ticks(), 10000]
+                elif sprite.type == 2:
+                    double_gems_duration = [pygame.time.get_ticks(), 10000]
+                else:
+                    shield_duration = [pygame.time.get_ticks(), 10000]
+            if -200 < sprite.rect.x < 1280 and -150 < sprite.rect.y < 960:
+                screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
         for sprite in explosions:
             if not running_pause and not is_game_over:
                 sprite.update()
@@ -581,12 +676,36 @@ while True:
             if col == 9999999999:
                 player.update()
                 score += 0.1
+                if boost_duration[1] > 0:
+                    boost_duration[1] = 10000 - (pygame.time.get_ticks() - boost_duration[0])
+                    screen.blit(boostC, (405, 860))
+                    pygame.draw.rect(screen, (100, 100, 100), (390, 940, 100, 10))
+                    pygame.draw.rect(screen, (20, 200, 70),
+                                     (390, 940, (10000 - (10000 - boost_duration[1])) // 100, 10))
+                    rot_koef = 2
+                    player.speed_koef = 2
+                else:
+                    rot_koef = 1
+                    player.speed_koef = 1
+                if double_gems_duration[1] > 0:
+                    double_gems_duration[1] = 10000 - (pygame.time.get_ticks() - double_gems_duration[0])
+                    screen.blit(double_gemsC, (535, 860))
+                    pygame.draw.rect(screen, (100, 100, 100), (520, 940, 100, 10))
+                    pygame.draw.rect(screen, (20, 200, 70),
+                                     (520, 940, (10000 - (10000 - double_gems_duration[1])) // 100, 10))
+                if shield_duration[1] > 0:
+                    shield_duration[1] = 10000 - (pygame.time.get_ticks() - shield_duration[0])
+                    screen.blit(shieldC, (675, 860))
+                    pygame.draw.rect(screen, (100, 100, 100), (660, 940, 100, 10))
+                    pygame.draw.rect(screen, (20, 200, 70),
+                                     (660, 940, (10000 - (10000 - shield_duration[1])) // 100, 10))
+                    screen.blit(ship_shield, (565, 405))
             else:
                 player.image = pygame.image.load(os.path.join('data\\images\\Space\\explosion\\8.png')).convert_alpha()
             obstacle = Obstacle()
             obstacle.rect.x = random.randint(-1360, 1640)
             obstacle.rect.y = random.randint(-520, 1280)
-            if not (0 < obstacle.rect.x < 1280 and 0 < obstacle.rect.y < 960):
+            if not (-200 < obstacle.rect.x < 1280 and -200 < obstacle.rect.y < 960):
                 obstacles.add(obstacle)
             if random.randint(1, 50) == 1:
                 gem = Gem()
@@ -594,6 +713,12 @@ while True:
                 gem.rect.y = random.randint(-1020, 1980)
                 if not (0 < gem.rect.x < 1280 and 0 < gem.rect.y < 960):
                     gems.add(gem)
+            if random.randint(1, 100) == 1:
+                bonus = Bonus()
+                bonus.rect.x = random.randint(-1360, 2640)
+                bonus.rect.y = random.randint(-1020, 1980)
+                if not (0 < bonus.rect.x < 1280 and 0 < bonus.rect.y < 960):
+                    bonuses.add(bonus)
             camera.update(player)
             if pygame.time.get_ticks() - 700 > col:
                 is_game_over = True
@@ -692,8 +817,11 @@ while True:
         profile_4.draw()
         menu_prof.listen(events)
         menu_prof.draw()
+        menu_prof_reset.listen(events)
+        menu_prof_reset.draw()
         menu_prof_change_name.listen(events)
         menu_prof_change_name.draw()
+        pygame.draw.rect(profiles_b, (0, 0, 255), (30, 30, 335, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (0, 0, 750, 800), 15)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 100, 295, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 250, 295, 55), 7)
