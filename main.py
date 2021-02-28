@@ -157,6 +157,50 @@ def set_text():
                              textColour=(0, 0, 255),
                              onClick=pick_profile_win)
 
+def prof_reset():# функция для сброса
+    global result
+    global profile_1
+    global profile_2
+    global profile_3
+    global profile_4
+    global moneys
+    global active_value
+    global menu_b_profiles
+    res = cur.execute(f'UPDATE data SET name = ?, money = ?, high_score = ?, ships = ? WHERE id = ?', ('profile', 0, 0, '1 0 0 0 0 0', active_profile_id,))
+    con.commit()
+    result = cur.execute("""SELECT * FROM data""").fetchall()
+    profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[0][1], result[0][2], result[0][0]))
+    profile_2 = Button(profiles_b, 225, 250, 295, 55, text=f'{result[1][1]}',
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[1][1], result[1][2], result[1][0]))
+    profile_3 = Button(profiles_b, 225, 400, 295, 55, text=f'{result[2][1]}',
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[2][1], result[2][2], result[2][0]))
+    profile_4 = Button(profiles_b, 225, 550, 295, 55, text=f'{result[3][1]}',
+                       fontSize=40, hoverColour=(78, 163, 39),
+                       inactiveColour=(50, 122, 17),
+                       pressedColour=(231, 247, 49),
+                       textColour=(0, 0, 255),
+                       onClick=on_click_button, onRelease=lambda: pick_p(result[3][1], result[3][2], result[3][0]))
+    menu_b_profiles = Button(screen, 0, 0, 200, 40, text='profile',
+                             fontSize=40, hoverColour=(78, 163, 39),
+                             inactiveColour=(50, 122, 17),
+                             pressedColour=(231, 247, 49),
+                             textColour=(0, 0, 255),
+                             onClick=pick_profile_win)
+    active_value = 0
+    moneys = font.render(f'{active_value}', False, (100, 255, 100))
 
 def pick_profile_win():
     global profile
@@ -378,6 +422,12 @@ menu_prof = Button(profiles_b, 30, 700, 335, 55, text='Вернуться в м�
                    pressedColour=(231, 247, 49),
                    textColour=(0, 0, 255),
                    onClick=on_click_button, onRelease=running_to_menu)
+menu_prof_reset = Button(profiles_b, 30, 30, 335, 55, text='Сбросить прогресс',
+                   fontSize=40, hoverColour=(78, 163, 39),
+                   inactiveColour=(50, 122, 17),
+                   pressedColour=(231, 247, 49),
+                   textColour=(0, 0, 255),
+                   onClick=on_click_button, onRelease= lambda: prof_reset())
 menu_prof_change_name_back = Button(profiles_change_name_b, 200, 500, 385, 55, text='Вернуться в профили',
                                     fontSize=40, hoverColour=(78, 163, 39),
                                     inactiveColour=(50, 122, 17),
@@ -692,9 +742,12 @@ while True:
         profile_4.draw()
         menu_prof.listen(events)
         menu_prof.draw()
+        menu_prof_reset.listen(events)
+        menu_prof_reset.draw()
         menu_prof_change_name.listen(events)
         menu_prof_change_name.draw()
         pygame.draw.rect(profiles_b, (0, 0, 255), (0, 0, 750, 800), 15)
+        pygame.draw.rect(profiles_b, (0, 0, 255), (30, 30, 335, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 100, 295, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 250, 295, 55), 7)
         pygame.draw.rect(profiles_b, (0, 0, 255), (225, 400, 295, 55), 7)
