@@ -2,6 +2,7 @@ import random
 import pygame
 import os
 import sqlite3
+import math
 from pygame_widgets import Button, Slider, TextBox
 from src.player import Player
 from src.camera import Camera
@@ -10,6 +11,7 @@ from src.gem import Gem
 from src.explosion import Explosion
 from src.sparkle import Sparkle
 from src.bonus import Bonus
+from src.planet import Planet
 
 
 def menu_to_running():
@@ -64,6 +66,18 @@ def restart():
     global boost_duration
     global double_gems_duration
     global shield_duration
+    global earth
+    global mars
+    global venus
+    global mercury
+    global pluto
+    global neptune
+    earth.rect.x, earth.rect.y = -263, 350
+    mars.rect.x, mars.rect.y = -2117, -5000
+    pluto.rect.x, pluto.rect.y = 7481, -4306
+    neptune.rect.x, neptune.rect.y = -6884, 3442
+    mercury.rect.x, mercury.rect.y = 6660, 1200
+    venus.rect.x, venus.rect.y = -263, 4000
     player = Player(current_ship)
     score = 0
     money_count = 0 
@@ -137,6 +151,23 @@ def prof_reset():# функция для сброса
                              onClick=pick_profile_win)
     active_value = 0
     moneys = font.render(f'{active_value}', False, (100, 255, 100))
+
+
+def gravitation(planet, obj):
+    if planet:
+        x_dif = obj.rect.center[0] - planet.rect.center[0]
+        y_dif = obj.rect.center[1] - planet.rect.center[1]
+        sum_dif = abs(x_dif) + abs(y_dif)
+        if sum_dif != 0:
+            angle = -round(90 * (x_dif / sum_dif))
+        if y_dif > 0:
+            angle = 180 - angle
+        elif angle < 0:
+            angle = 360 + angle
+        speedx = math.sin(math.radians(angle)) * 4
+        speedy = math.cos(math.radians(angle)) * 4
+        obj.rect.x += speedx
+        obj.rect.y += speedy
 
 
 def buy_ship(cost, name, id):
@@ -514,6 +545,43 @@ high_score = False
 hangar = False
 menu = True
 cursor = pygame.image.load(os.path.join('data\\images\\arrow.png')).convert_alpha()
+planets = pygame.sprite.Group()
+earth = Planet(pygame.image.load(os.path.join('data\\images\\Space\\earth.png')), 638)
+mars = Planet(pygame.image.load(os.path.join('data\\images\\Space\\mars.png')), 340)
+mercury = Planet(pygame.image.load(os.path.join('data\\images\\Space\\mercury.png')), 244)
+venus = Planet(pygame.image.load(os.path.join('data\\images\\Space\\venus.png')), 606)
+pluto = Planet(pygame.image.load(os.path.join('data\\images\\Space\\pluto.png')), 114)
+neptune = Planet(pygame.image.load(os.path.join('data\\images\\Space\\neptune.png')), 1000)
+planets.add(earth)
+planets.add(mars)
+planets.add(mercury)
+planets.add(venus)
+planets.add(neptune)
+planets.add(pluto)
+earth_grav = pygame.Surface((1276, 1276))
+earth_grav.fill((4, 1, 33))
+pygame.draw.circle(earth_grav, (255, 255, 255), (638, 638), radius=638)
+earth_grav.set_alpha(50)
+mars_grav = pygame.Surface((680, 680))
+mars_grav.fill((4, 1, 33))
+pygame.draw.circle(mars_grav, (255, 255, 255), (340, 340), radius=340)
+mars_grav.set_alpha(50)
+mercury_grav = pygame.Surface((488, 488))
+mercury_grav.fill((4, 1, 33))
+pygame.draw.circle(mercury_grav, (255, 255, 255), (244, 244), radius=244)
+mercury_grav.set_alpha(50)
+venus_grav = pygame.Surface((1212, 1212))
+venus_grav.fill((4, 1, 33))
+pygame.draw.circle(venus_grav, (255, 255, 255), (606, 606), radius=606)
+venus_grav.set_alpha(50)
+pluto_grav = pygame.Surface((228, 228))
+pluto_grav.fill((4, 1, 33))
+pygame.draw.circle(pluto_grav, (255, 255, 255), (114, 114), radius=114)
+pluto_grav.set_alpha(50)
+neptune_grav = pygame.Surface((2000, 2000))
+neptune_grav.fill((4, 1, 33))
+pygame.draw.circle(neptune_grav, (255, 255, 255), (1000, 1000), radius=1000)
+neptune_grav.set_alpha(50)
 while True:
     while running:
         events = pygame.event.get()
@@ -543,10 +611,42 @@ while True:
         bg_running = pygame.transform.scale(pygame.image.load(os.path.join(
             'data\\images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_running, (0, 0))
-        if not running_pause and not is_game_over:
-            camera.apply(player)
-        if not is_game_over:
-            screen.blit(player.image, (player.rect.x, player.rect.y))
+        for sprite in planets:
+            if not running_pause and not is_game_over:
+                camera.apply(sprite)
+            if pygame.sprite.collide_mask(sprite, player):
+                explosion = Explosion()
+                explosion.rect.x = player.rect.x
+                explosion.rect.y = player.rect.y
+                explosions.add(explosion)
+                pygame.mixer.Sound.play(sound_explosion_ship)
+                col = pygame.time.get_ticks()
+                res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
+                if round(score) > res2[0][0]:
+                    res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
+                    con.commit()
+                res = cur.execute(
+                    f'UPDATE data SET money = {active_value} + {money_count} WHERE id = {active_profile_id}')
+                con.commit()
+                res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
+                active_value = res2[0][0]
+                moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
+                result = cur.execute("""SELECT * FROM data""").fetchall()
+            pygame.sprite.groupcollide(planets, gems, False, True)
+            pygame.sprite.groupcollide(planets, bonuses, False, True)
+            if sprite == neptune:
+                if -1000 < sprite.rect.x < 1280 and -1000 < sprite.rect.y < 960:
+                    screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
+            else:
+                if -640 < sprite.rect.x < 1280 and -640 < sprite.rect.y < 960:
+                    screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
+        screen.blit(earth_grav, (earth.rect.x - 318, earth.rect.y - 318))
+        screen.blit(mars_grav, (mars.rect.x - 170, mars.rect.y - 170))
+        screen.blit(mercury_grav, (mercury.rect.x - 122, mercury.rect.y - 122))
+        screen.blit(venus_grav, (venus.rect.x - 303, venus.rect.y - 303))
+        screen.blit(pluto_grav, (pluto.rect.x - 57, pluto.rect.y - 57))
+        screen.blit(neptune_grav, (neptune.rect.x - 500, neptune.rect.y - 500))
+        screen.blit(player.image, (player.rect.x, player.rect.y))
         for sprite in enumerate(obstacles):
             if not running_pause and not is_game_over:
                 camera.apply(sprite[1])
@@ -560,6 +660,16 @@ while True:
             if (sprite[1].rect.x > 1640 or sprite[1].rect.x < -360) and (
                     sprite[1].rect.y > 1280 or sprite[1].rect.y < -520):
                 sprite[1].kill()
+            if not running_pause and not is_game_over:
+                gravitation(pygame.sprite.spritecollideany(sprite[1], planets,
+                                                           collided=pygame.sprite.collide_circle_ratio(1.2)), sprite[1])
+            if pygame.sprite.spritecollide(sprite[1], planets, False,
+                                           collided=pygame.sprite.collide_circle_ratio(0.65)):
+                sprite[1].kill()
+                explosion = Explosion()
+                explosion.rect.x = sprite[1].rect.x
+                explosion.rect.y = sprite[1].rect.y
+                explosions.add(explosion)
             if pygame.sprite.collide_mask(player, sprite[1]):
                 sprite[1].kill()
                 explosion = Explosion()
@@ -671,11 +781,12 @@ while True:
             screen.blit(game_over_text, (430, 350))
             screen.blit(cursor, (x + 240, y + 300))
         else:
-            camera.update(player)
             score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
             if col == 9999999999:
                 player.update()
                 score += 0.1
+                gravitation(pygame.sprite.spritecollideany(player, planets,
+                                                           collided=pygame.sprite.collide_circle_ratio(1.2)), player)
                 if boost_duration[1] > 0:
                     boost_duration[1] = 10000 - (pygame.time.get_ticks() - boost_duration[0])
                     screen.blit(boostC, (405, 860))
@@ -719,14 +830,15 @@ while True:
                 bonus.rect.y = random.randint(-1020, 1980)
                 if not (0 < bonus.rect.x < 1280 and 0 < bonus.rect.y < 960):
                     bonuses.add(bonus)
-            camera.update(player)
-            if pygame.time.get_ticks() - 700 > col:
+            if pygame.time.get_ticks() - 800 > col:
                 is_game_over = True
         score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
         gem_count_text = pygame.font.Font(None, 130).render(f'{money_count}', True, (100, 255, 100))
         screen.blit(score_text, (5, 20))
         screen.blit(gem_count_text, (1200 - gem_count_text.get_width(), 5))
         clock.tick(fps)
+        camera.update(player)
+        camera.apply(player)
         pygame.display.update()
     while menu:
         events = pygame.event.get()
