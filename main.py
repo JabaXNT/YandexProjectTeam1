@@ -314,6 +314,7 @@ active_name = None
 fps = 60
 game_over_text = pygame.font.Font(None, 70).render('ИГРА ОКОНЧЕНА', True, (0, 0, 255))
 change_name_text = pygame.font.Font(None, 40).render('Для сохранения нажмите Enter', True, (255, 255, 255))
+name_text = pygame.font.Font("freesansbold.ttf", 80).render('SpaceShips', True, (0, 0, 0))
 no_money = pygame.font.Font(None, 40).render('', True, (255, 255, 255))
 active_profile_id = 1
 money_count = 0
@@ -743,6 +744,7 @@ while True:
         screen.blit(money_image, (1200, 5))
         screen.blit(moneys, (1200 - moneys.get_width(), 0))
         screen.blit(volume_image, (0, 885))
+        screen.blit(name_text, (400, 50))
         # Отрисовка слайдера, кнопки и вызов функции
         volume_slider.listen(events)
         volume_slider.draw()
@@ -886,7 +888,7 @@ while True:
                 con.close()
                 quit()
         x, y = pygame.mouse.get_pos()
-        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join('data\\images\\Backgrounds\\menu.jpg'))
+        bg_menu = pygame.transform.scale(pygame.image.load(os.path.join('data\\images\\Backgrounds\\hangar_menu.jpg'))
                                          .convert_alpha(), (1280, 960))
         screen.blit(bg_menu, (0, 0))
         hangars.fill((0, 80, 199))
