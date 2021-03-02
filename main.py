@@ -2,6 +2,7 @@ import random
 import pygame
 import os
 import sqlite3
+import math
 from pygame_widgets import Button, Slider, TextBox
 from src.player import Player
 from src.camera import Camera
@@ -10,6 +11,7 @@ from src.gem import Gem
 from src.explosion import Explosion
 from src.sparkle import Sparkle
 from src.bonus import Bonus
+from src.planet import Planet
 
 
 def menu_to_running():
@@ -53,6 +55,7 @@ def restart():
     global camera
     global gems
     global bonuses
+    global bonus_count
     global sparkles
     global explosions
     global score
@@ -64,6 +67,49 @@ def restart():
     global boost_duration
     global double_gems_duration
     global shield_duration
+    global earth
+    global mars
+    global venus
+    global mercury
+    global pluto
+    global neptune
+    global missions
+    global bonus_trig
+    global vis_plan
+    vis_plan = []
+    bonus_trig = False
+    mis_res = cur.execute('select id, mission from missions where p' + str(active_profile_id) + ' = 0').fetchall()
+    missions = []
+    if len(mis_res) > 2:
+        for i in range(3):
+            missions.append([mis_res[i][0], mis_res[i][1]])
+    else:
+        for i in range(len(mis_res)):
+            missions.append([mis_res[i][0], mis_res[i][1]])
+    for m in missions:
+        m.append(0)
+        if m[0] == 8:
+            m.append(250)
+        elif m[0] == 4:
+            m.append(2)
+        elif m[0] == 12:
+            m.append(300)
+        elif m[0] == 16:
+            m.append(20)
+        elif m[0] % 4 == 3:
+            m.append(1)
+        elif m[0] % 4 in (1, 2):
+            m.append(int(m[1].split()[3]))
+        else:
+            m.append(6)
+        m.append(0)
+
+    earth.rect.x, earth.rect.y = -263, 350
+    mars.rect.x, mars.rect.y = -2117, -5000
+    pluto.rect.x, pluto.rect.y = 7481, -4306
+    neptune.rect.x, neptune.rect.y = -6884, 3442
+    mercury.rect.x, mercury.rect.y = 6660, 1200
+    venus.rect.x, venus.rect.y = -263, 4000
     player = Player(current_ship)
     score = 0
     money_count = 0 
@@ -72,6 +118,7 @@ def restart():
     camera = Camera()
     obstacles = pygame.sprite.Group()
     gems = pygame.sprite.Group()
+    bonus_count = [0, 0, 0]
     bonuses = pygame.sprite.Group()
     boost_duration = [0, 0]
     double_gems_duration = [0, 0]
@@ -81,7 +128,7 @@ def restart():
     col = 9999999999
 
 
-def volume():  # функция для изменения звука(вызывется в главном цикле)
+def volume():
     pygame.mixer.Sound.set_volume(soundtrack_menu, volume_slider.getValue() / 100)
 
 
@@ -89,11 +136,17 @@ def in_game_volume():
     pygame.mixer.Sound.set_volume(soundtrack_in_game, in_game_volume_slider.getValue() / 100)
 
 
+def _sfx_volume():
+    global sfx
+    for i in sfx:
+        pygame.mixer.Sound.set_volume(i, in_game_sfx_slider.getValue() / 100)
+
+
 def on_click_button():
     pygame.mixer.Sound.play(sound_click)
 
 
-def prof_reset():# функция для сброса
+def prof_reset():
     global result
     global profile_1
     global profile_2
@@ -102,7 +155,9 @@ def prof_reset():# функция для сброса
     global moneys
     global active_value
     global menu_b_profiles
-    res = cur.execute(f'UPDATE data SET name = ?, money = ?, high_score = ?, ships = ? WHERE id = ?', ('profile', 0, 0, '1 0 0 0 0 0', active_profile_id,))
+    res = cur.execute('UPDATE data SET name = ?, money = ?, high_score = ?, ships = ? WHERE id = ?',
+                      ('profile', 0, 0, '1 0 0 0 0 0', active_profile_id,))
+    res = cur.execute('update missions set p' + str(active_profile_id) + ' = 0')
     con.commit()
     result = cur.execute("""SELECT * FROM data""").fetchall()
     profile_1 = Button(profiles_b, 225, 100, 295, 55, text=f'{result[0][1]}',
@@ -137,6 +192,23 @@ def prof_reset():# функция для сброса
                              onClick=pick_profile_win)
     active_value = 0
     moneys = font.render(f'{active_value}', False, (100, 255, 100))
+
+
+def gravitation(planet, obj):
+    if planet:
+        x_dif = obj.rect.center[0] - planet.rect.center[0]
+        y_dif = obj.rect.center[1] - planet.rect.center[1]
+        sum_dif = abs(x_dif) + abs(y_dif)
+        if sum_dif != 0:
+            angle = -round(90 * (x_dif / sum_dif))
+        if y_dif > 0:
+            angle = 180 - angle
+        elif angle < 0:
+            angle = 360 + angle
+        speedx = math.sin(math.radians(angle)) * 4
+        speedy = math.cos(math.radians(angle)) * 4
+        obj.rect.x += speedx
+        obj.rect.y += speedy
 
 
 def buy_ship(cost, name, id):
@@ -273,7 +345,7 @@ con = sqlite3.connect(os.path.join('src\\profiles.db'))
 cur = con.cursor()
 font = pygame.font.Font(None, 130)
 soundtrack_menu = pygame.mixer.Sound(os.path.join(
-    'data\\sounds\\imperial_march.wav'))  # путь до музыки в меню
+    'data\\sounds\\imperial_march.wav'))
 soundtrack_in_game = pygame.mixer.Sound(os.path.join(
     'data\\sounds\\in_game.mp3'))
 sound_explosion_ship = pygame.mixer.Sound(os.path.join(
@@ -283,13 +355,17 @@ sound_click = pygame.mixer.Sound(os.path.join(
 sound_gem = pygame.mixer.Sound(os.path.join(
     'data\\sounds\\gem.mp3'))
 sound_mission = pygame.mixer.Sound(os.path.join(
-    'data\\sounds\\imperial_march.wav'))
+    'data\\sounds\\mission.mp3'))
 sound_bonus = pygame.mixer.Sound(os.path.join(
     'data\\sounds\\bonus.wav'))
+sfx = [sound_explosion_ship, sound_click, sound_gem, sound_bonus, sound_mission]
 money_image = pygame.image.load(os.path.join(
-    'data\\images\\Space\\gems\\money.png'))  # иконка валюты в меню
+    'data\\images\\Space\\gems\\money.png'))
 volume_image = pygame.image.load(os.path.join(
-    'data\\images\\volume_icon.png'))  # иконка звука в меню
+    'data\\images\\volume_icon.png'))
+cross = pygame.image.load(os.path.join(
+    'data\\images\\cross.png'))
+cross = pygame.transform.scale(cross, (60, 40))
 volume_image = pygame.transform.scale(volume_image, (75, 75))
 ship_1 = pygame.image.load(os.path.join('data\\images\\Ships\\default.png'))
 ship_1 = pygame.transform.scale(ship_1, (134, 236))
@@ -304,6 +380,7 @@ ship_5 = pygame.transform.scale(ship_5, (134, 236))
 ship_6 = pygame.image.load(os.path.join('data\\images\\Ships\\ship6.png'))
 ship_6 = pygame.transform.scale(ship_6, (134, 236))
 money_image = pygame.transform.scale(money_image, (75, 75))
+money_image_s =pygame.transform.scale(money_image, (65, 65))
 moneys = font.render("0", False, (100, 255, 100))
 pygame.mixer.Sound.play(soundtrack_menu, loops=-1, fade_ms=1000)
 pygame.mixer.Sound.play(soundtrack_in_game, loops=-1, fade_ms=1000)
@@ -325,6 +402,12 @@ game_over = pygame.Surface((800, 300))
 game_over_b = pygame.Surface((800, 300))
 pause_b = pygame.Surface((750, 600))
 pause = pygame.Surface((750, 600))
+pause.set_alpha(75)
+pause.fill((0, 80, 199))
+pause_b.set_colorkey('BLACK')
+mis_pass = pygame.Surface((750, 100))
+mis_pass.set_alpha(220)
+mis_pass.fill((193, 212, 74))
 profiles = pygame.Surface((750, 800))
 profiles_b = pygame.Surface((750, 800))
 profiles_change_name_b = pygame.Surface((750, 800))
@@ -334,9 +417,12 @@ high_scores_b = pygame.Surface((750, 800))
 hangars = pygame.Surface((1080, 800))
 hangars_b = pygame.Surface((1080, 800))
 pygame.mouse.set_visible(False)
-# слайдер, можно дизайн переделать
-volume_slider = Slider(screen, 100, 920, 200, 20, min=0, max=100, step=10)
-in_game_volume_slider = Slider(pause_b, 100, 300, 550, 20, min=0, max=100, step=5, initial=10)
+volume_slider = Slider(
+    screen, 100, 920, 200, 20, min=0, max=100, step=10, colour=(150, 150, 150), handleColour=(55, 115, 17))
+in_game_volume_slider = Slider(
+    pause_b, 65, 350, 270, 21, min=0, max=100, step=5, initial=10, colour=(55, 115, 17), handleColour=(0, 0, 255))
+in_game_sfx_slider = Slider(
+    pause_b, 415, 350, 270, 21, min=0, max=100, step=5, initial=100, colour=(55, 115, 17), handleColour=(0, 0, 255))
 prof_change_name = TextBox(profiles_change_name_b, 75, 100, 600, 80, fontSize=50,
                            borderColour=(255, 0, 0), textColour=(0, 200, 0),
                            onSubmit=set_text, radius=10, borderThickness=3)
@@ -370,7 +456,7 @@ menu_b_quit = Button(screen, 440, 650, 400, 70, text='Выйти из игры',
                      pressedColour=(231, 247, 49), radius=20,
                      textColour=(0, 0, 255),
                      onClick=on_click_button, onRelease=lambda: pygame.quit())
-pause_b_coninue = Button(pause_b, 50, 360, 300, 60, text='Продолжить',
+pause_b_coninue = Button(pause_b, 50, 398, 300, 60, text='Продолжить',
                          fontSize=40, hoverColour=(78, 163, 39),
                          inactiveColour=(50, 122, 17),
                          pressedColour=(231, 247, 49), radius=20,
@@ -382,7 +468,7 @@ pause_b_restart = Button(pause_b, 50, 500, 300, 60, text='Заново',
                          pressedColour=(231, 247, 49), radius=20,
                          textColour=(0, 0, 255),
                          onClick=on_click_button, onRelease=lambda: restart())
-pause_b_menu = Button(pause_b, 400, 360, 300, 60, text='В главное меню',
+pause_b_menu = Button(pause_b, 400, 398, 300, 60, text='В главное меню',
                       fontSize=40, hoverColour=(78, 163, 39),
                       inactiveColour=(50, 122, 17),
                       pressedColour=(231, 247, 49), radius=20,
@@ -507,6 +593,7 @@ double = pygame.image.load(os.path.join('data\\images\\space\\gems\\double.png')
 ship_shield = pygame.image.load(os.path.join('data\\images\\space\\bonus\\ship_shield.png')).convert_alpha()
 ship_shield = pygame.transform.scale(ship_shield, (150, 150))
 player = Player(current_ship)
+mis_time = 999999999
 running = False
 running_pause = False
 profile = False
@@ -515,6 +602,43 @@ high_score = False
 hangar = False
 menu = True
 cursor = pygame.image.load(os.path.join('data\\images\\arrow.png')).convert_alpha()
+planets = pygame.sprite.Group()
+earth = Planet(pygame.image.load(os.path.join('data\\images\\Space\\earth.png')), 638)
+mars = Planet(pygame.image.load(os.path.join('data\\images\\Space\\mars.png')), 340)
+mercury = Planet(pygame.image.load(os.path.join('data\\images\\Space\\mercury.png')), 244)
+venus = Planet(pygame.image.load(os.path.join('data\\images\\Space\\venus.png')), 606)
+pluto = Planet(pygame.image.load(os.path.join('data\\images\\Space\\pluto.png')), 114)
+neptune = Planet(pygame.image.load(os.path.join('data\\images\\Space\\neptune.png')), 1000)
+planets.add(earth)
+planets.add(mars)
+planets.add(mercury)
+planets.add(venus)
+planets.add(neptune)
+planets.add(pluto)
+earth_grav = pygame.Surface((1276, 1276))
+earth_grav.fill((4, 1, 33))
+pygame.draw.circle(earth_grav, (255, 255, 255), (638, 638), radius=638)
+earth_grav.set_alpha(50)
+mars_grav = pygame.Surface((680, 680))
+mars_grav.fill((4, 1, 33))
+pygame.draw.circle(mars_grav, (255, 255, 255), (340, 340), radius=340)
+mars_grav.set_alpha(50)
+mercury_grav = pygame.Surface((488, 488))
+mercury_grav.fill((4, 1, 33))
+pygame.draw.circle(mercury_grav, (255, 255, 255), (244, 244), radius=244)
+mercury_grav.set_alpha(50)
+venus_grav = pygame.Surface((1212, 1212))
+venus_grav.fill((4, 1, 33))
+pygame.draw.circle(venus_grav, (255, 255, 255), (606, 606), radius=606)
+venus_grav.set_alpha(50)
+pluto_grav = pygame.Surface((228, 228))
+pluto_grav.fill((4, 1, 33))
+pygame.draw.circle(pluto_grav, (255, 255, 255), (114, 114), radius=114)
+pluto_grav.set_alpha(50)
+neptune_grav = pygame.Surface((2000, 2000))
+neptune_grav.fill((4, 1, 33))
+pygame.draw.circle(neptune_grav, (255, 255, 255), (1000, 1000), radius=1000)
+neptune_grav.set_alpha(50)
 while True:
     while running:
         events = pygame.event.get()
@@ -541,13 +665,50 @@ while True:
                         player.direction = 0
         pygame.mixer.Sound.set_volume(soundtrack_menu, 0)
         in_game_volume()
+        _sfx_volume()
         bg_running = pygame.transform.scale(pygame.image.load(os.path.join(
             'data\\images\\Backgrounds\\space.jpg')).convert_alpha(), (1280, 960))
         screen.blit(bg_running, (0, 0))
-        if not running_pause and not is_game_over:
-            camera.apply(player)
-        if not is_game_over:
-            screen.blit(player.image, (player.rect.x, player.rect.y))
+        for sprite in planets:
+            if not running_pause and not is_game_over:
+                camera.apply(sprite)
+            if pygame.sprite.collide_mask(sprite, player):
+                explosion = Explosion()
+                explosion.rect.x = player.rect.x
+                explosion.rect.y = player.rect.y
+                explosions.add(explosion)
+                pygame.mixer.Sound.play(sound_explosion_ship)
+                col = pygame.time.get_ticks()
+                res2 = cur.execute(f'SELECT high_score FROM data WHERE id = {active_profile_id}').fetchall()
+                if round(score) > res2[0][0]:
+                    res = cur.execute(f'UPDATE data SET high_score = {round(score)} WHERE id = {active_profile_id}')
+                    con.commit()
+                res = cur.execute(
+                    f'UPDATE data SET money = {active_value} + {money_count} WHERE id = {active_profile_id}')
+                con.commit()
+                res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
+                active_value = res2[0][0]
+                moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
+                result = cur.execute("""SELECT * FROM data""").fetchall()
+            pygame.sprite.groupcollide(planets, gems, False, True)
+            pygame.sprite.groupcollide(planets, bonuses, False, True)
+            if sprite == neptune:
+                if -1000 < sprite.rect.x < 1280 and -1000 < sprite.rect.y < 960:
+                    screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
+                    if sprite not in vis_plan:
+                        vis_plan.append(sprite)
+            else:
+                if -640 < sprite.rect.x < 1280 and -640 < sprite.rect.y < 960:
+                    screen.blit(sprite.image, (sprite.rect.x, sprite.rect.y))
+                    if sprite not in vis_plan:
+                        vis_plan.append(sprite)
+        screen.blit(earth_grav, (earth.rect.x - 318, earth.rect.y - 318))
+        screen.blit(mars_grav, (mars.rect.x - 170, mars.rect.y - 170))
+        screen.blit(mercury_grav, (mercury.rect.x - 122, mercury.rect.y - 122))
+        screen.blit(venus_grav, (venus.rect.x - 303, venus.rect.y - 303))
+        screen.blit(pluto_grav, (pluto.rect.x - 57, pluto.rect.y - 57))
+        screen.blit(neptune_grav, (neptune.rect.x - 500, neptune.rect.y - 500))
+        screen.blit(player.image, (player.rect.x, player.rect.y))
         for sprite in enumerate(obstacles):
             if not running_pause and not is_game_over:
                 camera.apply(sprite[1])
@@ -561,6 +722,16 @@ while True:
             if (sprite[1].rect.x > 1640 or sprite[1].rect.x < -360) and (
                     sprite[1].rect.y > 1280 or sprite[1].rect.y < -520):
                 sprite[1].kill()
+            if not running_pause and not is_game_over:
+                gravitation(pygame.sprite.spritecollideany(sprite[1], planets,
+                                                           collided=pygame.sprite.collide_circle_ratio(1.2)), sprite[1])
+            if pygame.sprite.spritecollide(sprite[1], planets, False,
+                                           collided=pygame.sprite.collide_circle_ratio(0.65)):
+                sprite[1].kill()
+                explosion = Explosion()
+                explosion.rect.x = sprite[1].rect.x
+                explosion.rect.y = sprite[1].rect.y
+                explosions.add(explosion)
             if pygame.sprite.collide_mask(player, sprite[1]):
                 sprite[1].kill()
                 explosion = Explosion()
@@ -583,6 +754,10 @@ while True:
                     active_value = res2[0][0]
                     moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
                     result = cur.execute("""SELECT * FROM data""").fetchall()
+                    if missions[0][0] == 8 and missions[0][4] == 0:
+                        mia_com = cur.execute(
+                            'update missions set p' + str(active_profile_id) + f' = 1 where {missions[0][0]} = id')
+                        con.commit()
         for sprite in gems:
             if (sprite.rect.x > 2640 or sprite.rect.x < -1360) and (sprite.rect.y > 1980 or sprite.rect.y < -1020):
                 sprite.kill()
@@ -596,8 +771,15 @@ while True:
                 sparkles.add(sparkle)
                 pygame.mixer.Sound.play(sound_gem)
                 money_count += 1
-                if double_gems_duration[1] > 0:
-                    money_count += 1
+                for m in missions:
+                    if m[0] % 4 == 2 and m[2] < m[3]:
+                        m[2] += 1
+                        if double_gems_duration[1] > 0:
+                            m[2] += 1
+                            money_count += 1
+                    elif m[0] == 16 and double_gems_duration[1] > 0 and m[2] < m[3]:
+                        m[2] += 2
+                        money_count += 1
             if -200 < sprite.rect.x < 1280 and -150 < sprite.rect.y < 960:
                 if double_gems_duration[1] > 0:
                     screen.blit(double, (sprite.rect.x - 10, sprite.rect.y - 10))
@@ -609,6 +791,7 @@ while True:
             if not running_pause and not is_game_over:
                 camera.apply(sprite)
             if pygame.sprite.collide_mask(player, sprite):
+                bonus_trig = True
                 sprite.kill()
                 pygame.mixer.Sound.play(sound_bonus)
                 if sprite.type == 1:
@@ -631,11 +814,9 @@ while True:
             camera.apply(sprite)
         screen.blit(money_image, (1200, 5))
         if running_pause:
-            pause.fill((0, 80, 199))
-            pause.set_alpha(75)
             screen.blit(pause, (240, 100))
-            pause_b.set_colorkey('BLACK')
             screen.blit(pause_b, (240, 100))
+            pause_b.fill((0, 0, 0))
             pause_b_coninue.listen(events)
             pause_b_coninue.draw()
             pause_b_restart.listen(events)
@@ -644,16 +825,85 @@ while True:
             pause_b_menu.draw()
             pause_b_quit.listen(events)
             pause_b_quit.draw()
-            in_game_volume_slider.listen(events) # Примерное расположение слайдера, не знаю куда его поместить поэтому пусть пока там висит
+            in_game_volume_slider.listen(events)
             in_game_volume_slider.draw()
-            volume_text = pygame.font.Font(None, 60).render('ГРОМКОСТЬ ЗВУКА', True, (255, 255, 255))
-            pause_b.blit(volume_text, (225, 250))
+            in_game_sfx_slider.listen(events)
+            in_game_sfx_slider.draw()
+            volume_text = pygame.font.Font(None, 37).render('ГРОМКОСТЬ МУЗЫКИ', True, (255, 255, 255))
+            pause_b.blit(volume_text, (58, 300))
             x, y = pygame.mouse.get_pos()
             pygame.draw.rect(pause_b, (0, 0, 255), (0, 0, 750, 600), 15)
             pygame.draw.rect(pause_b, (0, 0, 255), (403, 503, 295, 55), 7)
-            pygame.draw.rect(pause_b, (0, 0, 255), (403, 363, 295, 55), 7)
-            pygame.draw.rect(pause_b, (0, 0, 255), (53, 363, 295, 55), 7)
+            pygame.draw.rect(pause_b, (0, 0, 255), (403, 400, 295, 55), 7)
+            pygame.draw.rect(pause_b, (0, 0, 255), (53, 400, 295, 55), 7)
             pygame.draw.rect(pause_b, (0, 0, 255), (53, 503, 295, 55), 7)
+            if len(missions) > 2:
+                if missions[2][4] == 1:
+                    pygame.draw.rect(pause_b, (50, 122, 17), (25, 195, 697, 50))
+                pygame.draw.rect(pause_b, (242, 170, 61), (622, 195, 100, 50), 7)
+                pygame.draw.rect(pause_b, (242, 170, 61), (25, 195, 80, 50), 7)
+                pygame.draw.rect(pause_b, (0, 0, 255), (25, 195, 697, 50), 7)
+                pause_b.blit(pygame.font.Font(None, 60).render(str(missions[2][0]), True, (255, 140, 0)), (35, 200))
+                m3_cond = str(missions[2][1])
+                m3_track = str(missions[2][2]) + '/' + str(missions[2][3])
+                if len(m3_cond) > 36:
+                    m_temp = m3_cond[:36].rindex(' ')
+                    pause_b.blit(pygame.font.Font(None, 36).render(m3_cond[:m_temp], False, (255, 140, 0)), (120, 200))
+                    pause_b.blit(pygame.font.Font(None, 36).render(m3_cond[m_temp + 1:], False, (255, 140, 0)), (120, 220))
+                else:
+                    pause_b.blit(pygame.font.Font(None, 36).render(m3_cond, False, (255, 140, 0)), (120, 200))
+                if missions[2][4] != -1:
+                    pause_b.blit(pygame.font.Font(None, 220 // len(m3_track)).render(m3_track, True, (255, 140, 0)),
+                                 (632, 200))
+                else:
+                    pause_b.blit(cross, (632, 200))
+            if len(missions) > 1:
+                if missions[1][4] == 1:
+                    pygame.draw.rect(pause_b, (50, 122, 17), (25, 115, 697, 50))
+                pygame.draw.rect(pause_b, (242, 170, 61), (25, 115, 80, 50), 7)
+                pygame.draw.rect(pause_b, (242, 170, 61), (622, 115, 100, 50), 7)
+                pygame.draw.rect(pause_b, (0, 0, 255), (25, 115, 697, 50), 7)
+                pause_b.blit(pygame.font.Font(None, 60).render(str(missions[1][0]), True, (255, 140, 0)), (35, 120))
+                m2_cond = str(missions[1][1])
+                m2_track = str(missions[1][2]) + '/' + str(missions[1][3])
+                if len(m2_cond) > 36:
+                    m_temp = m2_cond[:36].rindex(' ')
+                    pause_b.blit(pygame.font.Font(None, 36).render(m2_cond[:m_temp], False, (255, 140, 0)), (120, 120))
+                    pause_b.blit(pygame.font.Font(None, 36).render(m2_cond[m_temp + 1:], False, (255, 140, 0)),
+                                 (120, 140))
+                else:
+                    pause_b.blit(pygame.font.Font(None, 36).render(m2_cond, False, (255, 140, 0)), (120, 120))
+                if missions[1][4] != -1:
+                    pause_b.blit(pygame.font.Font(None, 220 // len(m2_track)).render(m2_track, True, (255, 140, 0)),
+                                 (632, 120))
+                else:
+                    pause_b.blit(cross, (632, 120))
+            if len(missions) > 0:
+                if missions[0][4] == 1:
+                    pygame.draw.rect(pause_b, (50, 122, 17), (25, 35, 697, 50))
+                pygame.draw.rect(pause_b, (242, 170, 61), (622, 35, 100, 50), 7)
+                pygame.draw.rect(pause_b, (242, 170, 61), (25, 35, 80, 50), 7)
+                pygame.draw.rect(pause_b, (0, 0, 255), (25, 35, 697, 50), 7)
+                pause_b.blit(pygame.font.Font(None, 60).render(str(missions[0][0]), True, (255, 140, 0)), (35, 40))
+                m1_cond = str(missions[0][1])
+                m1_track = str(missions[0][2]) + '/' + str(missions[0][3])
+                if len(m1_cond) > 36:
+                    m_temp = m1_cond[:36].rindex(' ')
+                    pause_b.blit(pygame.font.Font(None, 36).render(m1_cond[:m_temp], False, (255, 140, 0)), (120, 40))
+                    pause_b.blit(pygame.font.Font(None, 36).render(m1_cond[m_temp + 1:], False, (255, 140, 0)),
+                                 (120, 60))
+                else:
+                    pause_b.blit(pygame.font.Font(None, 36).render(m1_cond, False, (255, 140, 0)), (120, 40))
+                if missions[0][4] != -1:
+                    pause_b.blit(pygame.font.Font(None, 220 // len(m1_track)).render(m1_track, True, (255, 140, 0)),
+                                 (632, 40))
+                else:
+                    pause_b.blit(cross, (632, 40))
+            else:
+                pause_b.blit(pygame.font.Font(None, 80).render('ВСЕ МИССИИ', True, (255, 140, 0)),
+                             (188, 60))
+                pause_b.blit(pygame.font.Font(None, 80).render('ВЫПОЛНЕНЫ!', True, (255, 140, 0)),
+                             (175, 140))
             screen.blit(cursor, (x + 240, y + 100))
         elif is_game_over:
             game_over.fill((0, 50, 200))
@@ -672,11 +922,53 @@ while True:
             screen.blit(game_over_text, (430, 350))
             screen.blit(cursor, (x + 240, y + 300))
         else:
-            camera.update(player)
             score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
             if col == 9999999999:
                 player.update()
                 score += 0.1
+                for m in missions:
+                    if m[2] < m[3]:
+                        if m[0] == 12 and bonus_trig:
+                            m[4] = -1
+                        if m[0] == 8 and round(score) > 250:
+                            m[4] = -1
+                        if m[0] % 4 == 1 or m[0] in (8, 12):
+                            m[2] = round(score)
+                        if m[0] == 3:
+                            if venus in vis_plan:
+                                m[2] += 1
+                        elif m[0] == 7:
+                            if mars in vis_plan:
+                                m[2] += 1
+                        elif m[0] == 11:
+                            if mercury in vis_plan:
+                                m[2] += 1
+                        elif m[0] == 15:
+                            if neptune in vis_plan:
+                                m[2] += 1
+                        elif m[0] == 19:
+                            if pluto in vis_plan:
+                                m[2] += 1
+                        elif m[0] == 20:
+                            m[2] = len(vis_plan)
+                        elif m[0] == 4:
+                            m[2] = sum(bonus_count)
+                    if m[2] >= m[3] and m[4] == 0 and m[0] != 8:
+                        print(missions)
+                        m[4] = 1
+                        id_pass = m[0]
+                        mia_com = cur.execute(
+                            'update missions set p' + str(active_profile_id) + f' = 1 where {m[0]} = id')
+                        con.commit()
+                        res = cur.execute(
+                            f'UPDATE data SET money = {active_value} + 10 WHERE id = {active_profile_id}')
+                        con.commit()
+                        res2 = cur.execute(f'SELECT money FROM data WHERE id = {active_profile_id}').fetchall()
+                        active_value = res2[0][0]
+                        moneys = font.render(f'{res2[0][0]}', False, (100, 255, 100))
+                        mis_time = 0
+                gravitation(pygame.sprite.spritecollideany(player, planets,
+                                                           collided=pygame.sprite.collide_circle_ratio(1.2)), player)
                 if boost_duration[1] > 0:
                     boost_duration[1] = 10000 - (pygame.time.get_ticks() - boost_duration[0])
                     screen.blit(boostC, (405, 860))
@@ -685,7 +977,9 @@ while True:
                                      (390, 940, (10000 - (10000 - boost_duration[1])) // 100, 10))
                     rot_koef = 2
                     player.speed_koef = 2
+                    bonus_count[0] = 1
                 else:
+                    bonus_count[0] = 0
                     rot_koef = 1
                     player.speed_koef = 1
                 if double_gems_duration[1] > 0:
@@ -694,13 +988,19 @@ while True:
                     pygame.draw.rect(screen, (100, 100, 100), (520, 940, 100, 10))
                     pygame.draw.rect(screen, (20, 200, 70),
                                      (520, 940, (10000 - (10000 - double_gems_duration[1])) // 100, 10))
+                    bonus_count[1] = 1
+                else:
+                    bonus_count[1] = 0
                 if shield_duration[1] > 0:
+                    bonus_count[2] = 1
                     shield_duration[1] = 10000 - (pygame.time.get_ticks() - shield_duration[0])
                     screen.blit(shieldC, (675, 860))
                     pygame.draw.rect(screen, (100, 100, 100), (660, 940, 100, 10))
                     pygame.draw.rect(screen, (20, 200, 70),
                                      (660, 940, (10000 - (10000 - shield_duration[1])) // 100, 10))
                     screen.blit(ship_shield, (565, 405))
+                else:
+                    bonus_count[2] = 0
             else:
                 player.image = pygame.image.load(os.path.join('data\\images\\Space\\explosion\\8.png')).convert_alpha()
             obstacle = Obstacle()
@@ -720,14 +1020,44 @@ while True:
                 bonus.rect.y = random.randint(-1020, 1980)
                 if not (0 < bonus.rect.x < 1280 and 0 < bonus.rect.y < 960):
                     bonuses.add(bonus)
-            camera.update(player)
-            if pygame.time.get_ticks() - 700 > col:
+            if pygame.time.get_ticks() - 800 > col:
                 is_game_over = True
+        if mis_time < 999999999:
+            mis_time += 1
+            if mis_time < 33:
+                screen.blit(mis_pass, (240, -100 + mis_time * 3))
+                pygame.draw.rect(screen, (0, 0, 255), (240, -100 + mis_time * 3, 750, 100), 7)
+                screen.blit(pygame.font.Font(None, 52).render('Миссия ' + str(id_pass) + ' успешно заершена!',
+                                                              False, (0, 0, 255)), (260, -100 + mis_time * 3 + 37))
+                screen.blit(pygame.font.Font(None, 80).render('+10', False, (66, 173, 0)),
+                            (816, -100 + mis_time * 3 + 22))
+                screen.blit(money_image_s, (910, -100 + mis_time * 3 + 12))
+            elif mis_time < 100:
+                if mis_time == 34:
+                    pygame.mixer.Sound.play(sound_mission)
+                screen.blit(mis_pass, (240, 0))
+                pygame.draw.rect(screen, (0, 0, 255), (240, 0, 750, 100), 7)
+                screen.blit(pygame.font.Font(None, 52).render('Миссия ' + str(id_pass) + ' успешно заершена!',
+                                                              False, (0, 0, 255)), (260, 37))
+                screen.blit(pygame.font.Font(None, 80).render('+10', False, (66, 173, 0)), (816, 22))
+                screen.blit(money_image_s, (910, 12))
+            elif mis_time < 133:
+                screen.blit(mis_pass, (240, 0 - (mis_time - 100) * 3))
+                pygame.draw.rect(screen, (0, 0, 255), (240, 0 - (mis_time - 100) * 3, 750, 100), 7)
+                screen.blit(pygame.font.Font(None, 52).render('Миссия ' + str(id_pass) + ' успешно заершена!',
+                                                              False, (0, 0, 255)), (260, 0 - (mis_time - 100) * 3 + 37))
+                screen.blit(pygame.font.Font(None, 80).render('+10', False, (66, 173, 0)),
+                            (816, 0 - (mis_time - 100) * 3 + 22))
+                screen.blit(money_image_s, (910, 0 - (mis_time - 100) * 3 + 12))
+            else:
+                mis_time = 999999999
         score_text = pygame.font.Font(None, 60).render('Счёт: ' + str(round(score)), True, (255, 255, 255))
         gem_count_text = pygame.font.Font(None, 130).render(f'{money_count}', True, (100, 255, 100))
         screen.blit(score_text, (5, 20))
         screen.blit(gem_count_text, (1200 - gem_count_text.get_width(), 5))
         clock.tick(fps)
+        camera.update(player)
+        camera.apply(player)
         pygame.display.update()
     while menu:
         events = pygame.event.get()
@@ -833,7 +1163,7 @@ while True:
         pygame.draw.rect(profiles_b, (0, 0, 255), (380, 700, 335, 55), 7)
         screen.blit(cursor, (x + 240, y + 100))
         pygame.display.update()
-    while high_score:  # Окно с результатами(в процессе)
+    while high_score:
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:

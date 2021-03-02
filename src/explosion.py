@@ -13,7 +13,7 @@ class Explosion(pygame.sprite.Sprite):
 
     def update(self):
         if self.stage < 8:
-            self.stage += 0.4
+            self.stage += 0.6
         else:
             self.kill()
         self.explosion = pygame.image.load(os.path.join('data\\images\\Space\\explosion\\' + str(int(self.stage // 1)) + '.png')).convert_alpha()
