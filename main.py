@@ -74,10 +74,10 @@ def restart():
     global pluto
     global neptune
     global missions
-    global bonus_trig
+    global mb_trig
     global vis_plan
     vis_plan = []
-    bonus_trig = False
+    mb_trig = False
     mis_res = cur.execute('select id, mission from missions where p' + str(active_profile_id) + ' = 0').fetchall()
     missions = []
     if len(mis_res) > 2:
@@ -199,8 +199,7 @@ def gravitation(planet, obj):
         x_dif = obj.rect.center[0] - planet.rect.center[0]
         y_dif = obj.rect.center[1] - planet.rect.center[1]
         sum_dif = abs(x_dif) + abs(y_dif)
-        if sum_dif != 0:
-            angle = -round(90 * (x_dif / sum_dif))
+        angle = -round(90 * (x_dif / sum_dif))
         if y_dif > 0:
             angle = 180 - angle
         elif angle < 0:
@@ -221,7 +220,13 @@ def buy_ship(cost, name, id):
     res2 = cur.execute(f'SELECT ships FROM data WHERE id = {active_profile_id}').fetchall()
     ships = res2[0][0].split(' ')
     if ships[id - 1] == '1':
-        current_ship = pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}')).convert_alpha()
+        current_ship = [pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}.png')).convert_alpha(),
+                        pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}1.png')).convert_alpha(),
+                        pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}2.png')).convert_alpha(),
+                        pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}3.png')).convert_alpha(),
+                        pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}4.png')).convert_alpha(),
+                        pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}5.png')).convert_alpha(),
+                        pygame.image.load(os.path.join(f'data\\images\\Ships\\{name}6.png')).convert_alpha()]
     else:
         if active_value >= cost:
             active_value -= cost
@@ -367,7 +372,7 @@ cross = pygame.image.load(os.path.join(
     'data\\images\\cross.png'))
 cross = pygame.transform.scale(cross, (60, 40))
 volume_image = pygame.transform.scale(volume_image, (75, 75))
-ship_1 = pygame.image.load(os.path.join('data\\images\\Ships\\default.png'))
+ship_1 = pygame.image.load(os.path.join('data\\images\\Ships\\ship1.png'))
 ship_1 = pygame.transform.scale(ship_1, (134, 236))
 ship_2 = pygame.image.load(os.path.join('data\\images\\Ships\\ship2.png'))
 ship_2 = pygame.transform.scale(ship_2, (134, 236))
@@ -763,6 +768,7 @@ while True:
             if not running_pause and not is_game_over:
                 camera.apply(sprite)
             if pygame.sprite.collide_mask(player, sprite):
+                mb_trig = True
                 sprite.kill()
                 sparkle = Sparkle()
                 sparkle.rect.x = player.rect.x
@@ -790,7 +796,7 @@ while True:
             if not running_pause and not is_game_over:
                 camera.apply(sprite)
             if pygame.sprite.collide_mask(player, sprite):
-                bonus_trig = True
+                mb_trig = True
                 sprite.kill()
                 pygame.mixer.Sound.play(sound_bonus)
                 if sprite.type == 1:
@@ -927,7 +933,7 @@ while True:
                 score += 0.1
                 for m in missions:
                     if m[2] < m[3]:
-                        if m[0] == 12 and bonus_trig:
+                        if m[0] == 12 and mb_trig:
                             m[4] = -1
                         if m[0] == 8 and round(score) > 250:
                             m[4] = -1
@@ -953,7 +959,6 @@ while True:
                         elif m[0] == 4:
                             m[2] = sum(bonus_count)
                     if m[2] >= m[3] and m[4] == 0 and m[0] != 8:
-                        print(missions)
                         m[4] = 1
                         id_pass = m[0]
                         mia_com = cur.execute(
